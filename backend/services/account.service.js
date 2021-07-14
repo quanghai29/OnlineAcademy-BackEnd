@@ -8,8 +8,8 @@ async function createAcc(newAcc) {
   const acc = await accountModel.addAccount(newAcc);
   newAcc.id = acc[0];
   newAcc.password = null;
-  result.code = Code.Success;
-  result.message = Message.Success;
+  result.code = Code.Created_Success;
+  result.message = Message.Created_Success;
   result.isExist = false;
   result.data = newAcc;
   return result;
@@ -72,6 +72,19 @@ async function activeEmail(accountId){
   return resData;
 }
 
+async function getAccountByEmail(email){
+  const res ={};
+  const result = await accountModel.getSingleAccountByEmail(email);
+  if(result === null){
+    res.code = Code.Not_Found
+  }else{
+    res.code = Code.Success;
+    res.data = result
+  }
+
+  return res;
+}
+
 async function loginAcc(data) {
 }
 
@@ -117,5 +130,5 @@ async function isValidRefreshToken(id, refreshToken) {
 module.exports = {
   createAcc, loginAcc, updateRefreshToken, isValidRefreshToken,
   checkExistingAccount, sendOtpCodeByEmail, generateCode, activeEmail,
-  getAccountByUsername, 
+  getAccountByUsername, getAccountByEmail
 }

@@ -15,6 +15,7 @@ module.exports = function (req, res, next) {
     }
   } else {
     return res.status(400).json({
+      code: 400,
       message: 'Access token not found.'
     })
   }

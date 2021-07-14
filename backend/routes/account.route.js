@@ -23,7 +23,7 @@ router.post('/signup', require('../middlewares/validate.mdw')(signupSchema),
       }, process.env.JWT_TOKEN, {
         expiresIn: process.env.OTP_EXPIRES_IN // seconds (60s)
       });
-      await accountService.sendOtpCodeByEmail(req.body.email, otpCode);
+      accountService.sendOtpCodeByEmail(req.body.email, otpCode);
 
       ret.otpToken = otpToken;
       res.status(ret.code).json(ret);
@@ -34,18 +34,45 @@ router.post('/signup', require('../middlewares/validate.mdw')(signupSchema),
 const verifyCodeSchema = require('../schema/account/verifyCode.account.json');
 const validateCodeSchema = require('../middlewares/validate.mdw')(verifyCodeSchema);
 const authMiddleware = require('../middlewares/auth.mdw');
-router.post('/verify-code',authMiddleware, validateCodeSchema,
+router.post('/verify-code', authMiddleware, validateCodeSchema,
   async (req, res) => {
     const code = req.body.code;
     const tokenPayload = req.accessTokenPayload;
-    if(code === tokenPayload.otpCode){
+    if (code === tokenPayload.otpCode) {
       //active email
       const result = await accountService.activeEmail(tokenPayload.id);
       res.status(result.code).json(result);
-    }else{
-      res.json({message: 'The code is not correct!'});
+    } else {
+      res.status(440).json({
+        message: 'The otp-code is not correct!'
+      });
     }
   })
+
+router.post('/resend-code', async (req, res) => {
+  const email = req.body.email;
+  const result = await accountService.getAccountByEmail(email);
+  if (result.code === 200) {
+    const otpCode = accountService.generateCode();
+    const otpToken = jwt.sign({
+      otpCode,
+      id: result.data.id
+    }, process.env.JWT_TOKEN, {
+      expiresIn: process.env.OTP_EXPIRES_IN // seconds (60s)
+    });
+    accountService.sendOtpCodeByEmail(email, otpCode);
+
+    res.status(200).json({
+      ...result,
+      otpToken
+    });
+  } else {
+    return res.status(404).json({
+      message: 'Email is not found'
+    });
+  }
+
+})
 
 const loginSchema = require('../schema/account/login.account.json')
 router.post('/login', require('../middlewares/validate.mdw')(loginSchema),
