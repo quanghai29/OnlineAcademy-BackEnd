@@ -12,18 +12,29 @@ const rfTokenSchema = require('../schema/rfToken.json');
 const router = express.Router();
 
 router.post('/', validate(loginSchema), async function (req, res) {
+  console.log('user',req.body);
   const ret = await accountService.getAccountByUsername(req.body.username);
-  const account = ret.data;
+  const account = ret.data || null;
   if (account === null) {
     return res.json({
-      authenticated: false
+      authenticated: false,
+      shouldConfirmEmail:false
     });
   }
 
   if (!bcrypt.compareSync(req.body.password, account.password)) {
     return res.json({
-      authenticated: false
+      authenticated: false,
+      shouldConfirmEmail: false
     });
+  }
+
+  if(!account.confirm_email){
+    return res.json({
+      authenticated: false,
+      shouldConfirmEmail: true,
+      email: account.email
+    })
   }
 
   const accessToken = jwt.sign({
@@ -38,7 +49,10 @@ router.post('/', validate(loginSchema), async function (req, res) {
   res.json({
     authenticated: true,
     accessToken,
-    refreshToken
+    refreshToken,
+    username:account.username,
+    email: account.email,
+    shouldConfirmEmail: false
   })
 })
 

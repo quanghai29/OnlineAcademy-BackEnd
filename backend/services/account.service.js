@@ -85,9 +85,6 @@ async function getAccountByEmail(email){
   return res;
 }
 
-async function loginAcc(data) {
-}
-
 //#region TienDung
 
 async function getAccountByUsername(username) {
@@ -128,7 +125,7 @@ async function isValidRefreshToken(id, refreshToken) {
 //#endregion
 
 module.exports = {
-  createAcc, loginAcc, updateRefreshToken, isValidRefreshToken,
+  createAcc, updateRefreshToken, isValidRefreshToken,
   checkExistingAccount, sendOtpCodeByEmail, generateCode, activeEmail,
   getAccountByUsername, getAccountByEmail
 }

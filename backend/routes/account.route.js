@@ -74,10 +74,4 @@ router.post('/resend-code', async (req, res) => {
 
 })
 
-const loginSchema = require('../schema/account/login.account.json')
-router.post('/login', require('../middlewares/validate.mdw')(loginSchema),
-  async (req, res) => {
-
-  })
-
 module.exports = router;
