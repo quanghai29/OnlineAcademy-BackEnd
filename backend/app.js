@@ -1,6 +1,7 @@
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const fileUpload = require('express-fileupload');
 require('express-async-errors');
 require('dotenv').config();
 
@@ -10,6 +11,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname + '/public'));
 app.use(morgan('dev'));
+app.use(fileUpload());
 
 // middleware api
 require('./middlewares/routes.mdw')(app);
