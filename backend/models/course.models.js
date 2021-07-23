@@ -148,30 +148,70 @@ module.exports = {
     const courses = await db
       .select(
         'course.*',
-        'lecturer.fullname as lecturer_name',
-        'lecturer.email as lecturer_email',
-        'lecturer.address as lecturer_address',
-        'lecturer.shool as lecturer_school',
-        'lecturer.experience_year as lecturer_experience_year',
-        'lecturer.programming_language as lecturer_programing_language',
-        'image.img_source',
-        'image.img_title')
+        'account_detail.fullname as lecturer_name',
+        'account_detail.headline as lecturer_headline',
+        'account_detail.description as lecturer_description',
+        'account_detail.img_profile as lecturer_imgprofile',
+        'image.img_source as course_img_source',
+        'image.img_title as course_img_title')
       .from('course')
       .where('course.id', course_id)
-      .leftJoin('lecturer', 'lecturer.id', 'course.lecturer_id')
+      .leftJoin('account_detail', 'account_detail.account_id', 'course.lecturer_id')
       .leftJoin('image', 'image.id', 'course.img_id');
 
     if (courses.length > 0) {
       let course = courses[0];
-      const chapters = await this.chapter(course_id);
+      const chaptersContent = await this.getContentChapter(course_id);
+
+      const chapters_fillter = chaptersContent.map(chapter =>{
+        const temp = chaptersContent.filter(item => item.chapter_id == chapter.chapter_id);
+
+        const videos = temp.map((item)=>{
+          return{
+            video_id :item.video_id,
+            video_title: item.video_title,
+            duration: item.duration
+          }
+        }).filter((item) => item.video_id != null);
+
+        return {
+          chapter_id: chapter.chapter_id,
+          chapter_title: chapter.chapter_title,
+          course_id: chapter.course_id,
+          videos: videos,
+          sum_video_chapter: videos.length,
+          sum_duration_chapter: videos.reduce((n,{duration}) => n + duration, 0)
+        }
+      })
+      
+      const chapters = new Set();
+      chapters_fillter.filter((item) => {
+        
+      })
+
       course.chapters = chapters;
+      course.sum_video_course = chapters.length;
+      course.sum_duration_course = chapters.reduce((n,{sum_duration_chapter}) => n + sum_duration_chapter, 0);
+
       return course;
     }
 
     return null;
   },
 
-  chapter(course_id) {
-    return db.from('chapter').where('course_id', course_id);
-  }
+  getContentChapter(course_id) {
+    return db
+      .select(
+        'chapter.id as chapter_id',
+        'chapter.title as chapter_title',
+        'chapter.course_id',
+        'video.id as video_id',
+        'video.title as video_title',
+        'video.duration',
+      )
+      .from('chapter')
+      .leftJoin('video','video.chapter_id','chapter.id')
+      .where('chapter.course_id', course_id)
+      .orderBy('chapter.id', 'asc');
+  },
 };
