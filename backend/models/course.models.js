@@ -153,14 +153,23 @@ module.exports = {
         'account_detail.description as lecturer_description',
         'account_detail.img_profile as lecturer_imgprofile',
         'image.img_source as course_img_source',
-        'image.img_title as course_img_title')
+        'image.img_title as course_img_title',
+        db.raw('CAST(AVG(sc.vote) AS DECIMAL(10,1)) AS num_rating')
+      )
+      .count('sc.id as num_register')
+      .count('sc.vote as num_feedback')
       .from('course')
       .where('course.id', course_id)
       .leftJoin('account_detail', 'account_detail.account_id', 'course.lecturer_id')
-      .leftJoin('image', 'image.id', 'course.img_id');
+      .leftJoin('image', 'image.id', 'course.img_id')
+      .leftJoin('student_course as sc','sc.course_id', 'course.id')
+      ;
 
     if (courses.length > 0) {
       let course = courses[0];
+
+      //get all chapter
+
       const chaptersContent = await this.getContentChapter(course_id);
 
       const chapters_fillter = chaptersContent.map(chapter =>{
@@ -184,14 +193,14 @@ module.exports = {
         }
       })
       
-      const chapters = new Set();
-      chapters_fillter.filter((item) => {
-        
-      })
+      const chapters = [...new Map(chapters_fillter.map(obj => [JSON.stringify(obj), obj])).values()];
 
       course.chapters = chapters;
-      course.sum_video_course = chapters.length;
+      course.sum_video_course = chapters.reduce((n, {sum_video_chapter}) => n + sum_video_chapter, 0);
       course.sum_duration_course = chapters.reduce((n,{sum_duration_chapter}) => n + sum_duration_chapter, 0);
+
+      //get voted
+      
 
       return course;
     }
@@ -214,4 +223,10 @@ module.exports = {
       .where('chapter.course_id', course_id)
       .orderBy('chapter.id', 'asc');
   },
+
+  getVotedCourse(course_id){
+    return db
+      .from('student_course')
+      .where('course_id', course_id)
+  }
 };
