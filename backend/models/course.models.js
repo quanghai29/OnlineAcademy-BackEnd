@@ -133,10 +133,10 @@ module.exports = {
     return comments[0];
   },
 
-  async addComment(comment){
+  async addComment(comment) {
     const result = await db('comment').insert({
-      content: comment.content, 
-      student_id: comment.student_id, 
+      content: comment.content,
+      student_id: comment.student_id,
       course_id: comment.course_id
     });
 
@@ -162,7 +162,7 @@ module.exports = {
       .where('course.id', course_id)
       .leftJoin('account_detail', 'account_detail.account_id', 'course.lecturer_id')
       .leftJoin('image', 'image.id', 'course.img_id')
-      .leftJoin('student_course as sc','sc.course_id', 'course.id')
+      .leftJoin('student_course as sc', 'sc.course_id', 'course.id')
       ;
 
     if (courses.length > 0) {
@@ -172,12 +172,12 @@ module.exports = {
 
       const chaptersContent = await this.getContentChapter(course_id);
 
-      const chapters_fillter = chaptersContent.map(chapter =>{
+      const chapters_fillter = chaptersContent.map(chapter => {
         const temp = chaptersContent.filter(item => item.chapter_id == chapter.chapter_id);
 
-        const videos = temp.map((item)=>{
-          return{
-            video_id :item.video_id,
+        const videos = temp.map((item) => {
+          return {
+            video_id: item.video_id,
             video_title: item.video_title,
             duration: item.duration
           }
@@ -189,18 +189,18 @@ module.exports = {
           course_id: chapter.course_id,
           videos: videos,
           sum_video_chapter: videos.length,
-          sum_duration_chapter: videos.reduce((n,{duration}) => n + duration, 0)
+          sum_duration_chapter: videos.reduce((n, { duration }) => n + duration, 0)
         }
       })
-      
+
       const chapters = [...new Map(chapters_fillter.map(obj => [JSON.stringify(obj), obj])).values()];
 
       course.chapters = chapters;
-      course.sum_video_course = chapters.reduce((n, {sum_video_chapter}) => n + sum_video_chapter, 0);
-      course.sum_duration_course = chapters.reduce((n,{sum_duration_chapter}) => n + sum_duration_chapter, 0);
+      course.sum_video_course = chapters.reduce((n, { sum_video_chapter }) => n + sum_video_chapter, 0);
+      course.sum_duration_course = chapters.reduce((n, { sum_duration_chapter }) => n + sum_duration_chapter, 0);
 
       //get voted
-      
+
 
       return course;
     }
@@ -219,12 +219,12 @@ module.exports = {
         'video.duration',
       )
       .from('chapter')
-      .leftJoin('video','video.chapter_id','chapter.id')
+      .leftJoin('video', 'video.chapter_id', 'chapter.id')
       .where('chapter.course_id', course_id)
       .orderBy('chapter.id', 'asc');
   },
 
-  getVotedCourse(course_id){
+  getVotedCourse(course_id) {
     return db
       .from('student_course')
       .where('course_id', course_id)
