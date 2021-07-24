@@ -118,9 +118,16 @@ async function getCourseByCategory(category_id) {
 }
 
 async function findCourse(text) {
-  let retData = {};
-  let data = [];
+  let retData = {
+    data:{
+      courses: [],
+      keyWord: ''
+    },
+    code: null,
+    message: ''
+  };
   if (text) {
+    retData.data.keyWord = text;
     //get data from course table
     const courses = await courseModel.fullTextSearchCourse(text);
     if (courses.length > 0) {
@@ -135,9 +142,9 @@ async function findCourse(text) {
         delete courses[i].lecturer_id;
         delete courses[i].img_id;
       }
-      retData.data = courses;
+      retData.data.courses = courses;
     } else {
-      retData.data = [];
+      retData.data.courses = [];
     }
     retData.code = Code.Success;
     retData.message = Message.Success;
