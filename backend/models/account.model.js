@@ -32,7 +32,12 @@ module.exports = {
     return false;
   },
 
-  activeEmail(accountId){
-    return db(table_name).where('id', accountId).update('confirm_email', true);
+  async activeEmail(accountId) {
+    return await db(table_name).where('id', accountId).update('confirm_email', true);
+  },
+
+  async getAccountDetail(account_id) {
+    const accountDetail = await db('account_detail').where('account_id', account_id);
+    return accountDetail.length ? accountDetail[0] : null;
   }
 };
