@@ -1,3 +1,4 @@
+const { getBestSellerCoursesByCategory } = require("../services/course.service");
 const db = require("../utils/db");
 
 const table_name = 'course';
@@ -33,6 +34,11 @@ module.exports = {
       return null;
     }
 
+    return courses;
+  },
+
+  async coursesByCategory(category_id){
+    const courses = await db(table_name).where('category_id', category_id);
     return courses;
   },
 

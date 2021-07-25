@@ -4,6 +4,7 @@ const moment = require('moment');
 const accountModel = require('../models/account.model')
 const imageModel = require('../models/image.model');
 const studentCourseModel = require('../models/student_course.model');
+const categoryModel = require("../models/category.models");
 
 //#region Quang Hai MTP
 async function getCourseDetail(id) {
@@ -117,9 +118,24 @@ async function getCourseByCategory(category_id) {
   return returnModel;
 }
 
+async function getFullDataCourses(courses) {
+  let temp = 0;
+  for (let i = 0; i < courses.length; i++) {
+    courses[i].author = await accountModel.getAccountDetail(courses[i].lecturer_id);
+    temp = await studentCourseModel.getVoteOfCourse(courses[i].id);
+    courses[i].total_vote = +temp.vote;
+    temp = await studentCourseModel.getSubscriberOfCourse(courses[i].id);
+    courses[i].subscriber = temp.subscriber;
+    courses[i].image = await imageModel.getImageById(courses[i].img_id);
+    delete courses[i].lecturer_id;
+    delete courses[i].img_id;
+  }
+  return courses;
+}
+
 async function findCourse(text) {
   let retData = {
-    data:{
+    data: {
       courses: [],
       keyWord: ''
     },
@@ -131,20 +147,19 @@ async function findCourse(text) {
     //get data from course table
     const courses = await courseModel.fullTextSearchCourse(text);
     if (courses.length > 0) {
-      let temp = 0;
-      for (let i = 0; i < courses.length; i++) {
-        courses[i].author = await accountModel.getAccountDetail(courses[i].lecturer_id);
-        temp = await studentCourseModel.getVoteOfCourse(courses[i].id);
-        courses[i].total_vote = +temp.vote;
-        temp = await studentCourseModel.getSubscriberOfCourse(courses[i].id);
-        courses[i].subscriber = temp.subscriber;
-        courses[i].image = await imageModel.getImageById(courses[i].img_id);
-        delete courses[i].lecturer_id;
-        delete courses[i].img_id;
-      }
-      retData.data.courses = courses;
+      retData.data.courses = await getFullDataCourses(courses);
     } else {
-      retData.data.courses = [];
+      const categories = await categoryModel.fullTextSearchCategory(text);
+      if (categories.length > 0) {
+        let arrCourses = [];
+        for (let i = 0; i < categories.length; i++) {
+          let courses = await courseModel.coursesByCategory(categories[i].id);
+          arrCourses = arrCourses.concat(courses);
+        }
+        retData.data.courses=await getFullDataCourses(arrCourses);
+      } else {
+        retData.data.courses = [];
+      }
     }
     retData.code = Code.Success;
     retData.message = Message.Success;
