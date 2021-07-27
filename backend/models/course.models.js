@@ -1,4 +1,5 @@
-const db = require('../utils/db');
+const { getBestSellerCoursesByCategory } = require("../services/course.service");
+const db = require("../utils/db");
 
 const table_name = 'course';
 module.exports = {
@@ -34,6 +35,11 @@ module.exports = {
       return null;
     }
 
+    return courses;
+  },
+
+  async coursesByCategory(category_id){
+    const courses = await db(table_name).where('category_id', category_id);
     return courses;
   },
 
@@ -138,7 +144,7 @@ module.exports = {
     const result = await db('comment').insert({
       content: comment.content,
       student_id: comment.student_id,
-      course_id: comment.course_id,
+      course_id: comment.course_id
     });
 
     console.log('add comment', result);
@@ -154,35 +160,36 @@ module.exports = {
         'account_detail.description as lecturer_description',
         'account_detail.img_profile as lecturer_imgprofile',
         'image.img_source as course_img_source',
-        'image.img_title as course_img_title'
+        'image.img_title as course_img_title',
+        db.raw('CAST(AVG(sc.vote) AS DECIMAL(10,1)) AS num_rating')
       )
+      .count('sc.id as num_register')
+      .count('sc.vote as num_feedback')
       .from('course')
       .where('course.id', course_id)
-      .leftJoin(
-        'account_detail',
-        'account_detail.account_id',
-        'course.lecturer_id'
-      )
-      .leftJoin('image', 'image.id', 'course.img_id');
+      .leftJoin('account_detail', 'account_detail.account_id', 'course.lecturer_id')
+      .leftJoin('image', 'image.id', 'course.img_id')
+      .leftJoin('student_course as sc', 'sc.course_id', 'course.id')
+      ;
 
     if (courses.length > 0) {
       let course = courses[0];
+
+      //get all chapter
+
       const chaptersContent = await this.getContentChapter(course_id);
 
-      const chapters_fillter = chaptersContent.map((chapter) => {
-        const temp = chaptersContent.filter(
-          (item) => item.chapter_id == chapter.chapter_id
-        );
+      const chapters_fillter = chaptersContent.map(chapter => {
+        const temp = chaptersContent.filter(item => item.chapter_id == chapter.chapter_id);
 
-        const videos = temp
-          .map((item) => {
-            return {
-              video_id: item.video_id,
-              video_title: item.video_title,
-              duration: item.duration,
-            };
-          })
-          .filter((item) => item.video_id != null);
+        const videos = temp.map((item) => {
+          return {
+            video_id: item.video_id,
+            video_title: item.video_title,
+            duration: item.duration,
+            isPreview: item.isPreview
+          }
+        }).filter((item) => item.video_id != null);
 
         return {
           chapter_id: chapter.chapter_id,
@@ -190,22 +197,18 @@ module.exports = {
           course_id: chapter.course_id,
           videos: videos,
           sum_video_chapter: videos.length,
-          sum_duration_chapter: videos.reduce(
-            (n, { duration }) => n + duration,
-            0
-          ),
-        };
-      });
+          sum_duration_chapter: videos.reduce((n, { duration }) => n + duration, 0)
+        }
+      })
 
-      const chapters = new Set();
-      chapters_fillter.filter((item) => {});
+      const chapters = [...new Map(chapters_fillter.map(obj => [JSON.stringify(obj), obj])).values()];
 
       course.chapters = chapters;
-      course.sum_video_course = chapters.length;
-      course.sum_duration_course = chapters.reduce(
-        (n, { sum_duration_chapter }) => n + sum_duration_chapter,
-        0
-      );
+      course.sum_video_course = chapters.reduce((n, { sum_video_chapter }) => n + sum_video_chapter, 0);
+      course.sum_duration_course = chapters.reduce((n, { sum_duration_chapter }) => n + sum_duration_chapter, 0);
+
+      //get voted
+
 
       return course;
     }
@@ -221,11 +224,18 @@ module.exports = {
         'chapter.course_id',
         'video.id as video_id',
         'video.title as video_title',
-        'video.duration'
+        'video.duration',
+        'video.isPreview'
       )
       .from('chapter')
       .leftJoin('video', 'video.chapter_id', 'chapter.id')
       .where('chapter.course_id', course_id)
       .orderBy('chapter.id', 'asc');
   },
+
+  getVotedCourse(course_id) {
+    return db
+      .from('student_course')
+      .where('course_id', course_id)
+  }
 };

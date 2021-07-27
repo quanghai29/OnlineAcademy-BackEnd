@@ -1,20 +1,24 @@
 const { Code, Message } = require('../helper/statusCode.helper');
 const courseModel = require('../models/course.models');
 const moment = require('moment');
+const accountModel = require('../models/account.model')
+const imageModel = require('../models/image.model');
+const studentCourseModel = require('../models/student_course.model');
+const categoryModel = require("../models/category.models");
 
 //#region Quang Hai MTP
 async function getCourseDetail(id) {
-    let returnModel = {}; // code; message; data
-    const course = await courseModel.detail(id);
-    if (course == null) {
-        returnModel.code = Code.Not_Found;
-    } else {
-        course.last_update = moment(course.last_update).format('MM/YYYY');
-        course.create_date = moment(course.create_date).format('DD/MM/YYYY');
-        returnModel.code = Code.Success;
-        returnModel.data = course;
-    }
-    return returnModel;
+  let returnModel = {}; // code; message; data
+  const course = await courseModel.detail(id);
+  if (course == null) {
+    returnModel.code = Code.Not_Found;
+  } else {
+    course.last_update = moment(course.last_update).format('MM/YYYY');
+    course.create_date = moment(course.create_date).format('DD/MM/YYYY');
+    returnModel.code = Code.Success;
+    returnModel.data = course;
+  }
+  return returnModel;
 }
 
 //#endregion
@@ -114,32 +118,71 @@ async function getCourseByCategory(category_id) {
   return returnModel;
 }
 
-async function findCourse(text) {
-    let retData = {};
-    if (text) {
-        const courses = await courseModel.fullTextSearchCourse(text);
-        retData.code = Code.Success;
-        retData.message = Message.Success;
-        retData.data = courses? course : [];
-    } else {
-        retData.code = Code.Bad_Request;
-        retData.message = Message.Bad_Request;
-    }
+async function getFullDataCourses(courses) {
+  let temp = 0;
+  for (let i = 0; i < courses.length; i++) {
+    courses[i].author = await accountModel.getAccountDetail(courses[i].lecturer_id);
+    temp = await studentCourseModel.getVoteOfCourse(courses[i].id);
+  
+    courses[i].avg_vote = +temp[0].vote || 0;
+    temp = await studentCourseModel.getSubscriberOfCourse(courses[i].id);
+    courses[i].subscriber = temp.subscriber;
+    courses[i].image = await imageModel.getImageById(courses[i].img_id);
+    delete courses[i].lecturer_id;
+    delete courses[i].img_id;
+  }
+  return courses;
+}
 
-    return retData;
+async function findCourse(text) {
+  let retData = {
+    data: {
+      courses: [],
+      keyWord: ''
+    },
+    code: null,
+    message: ''
+  };
+  if (text) {
+    retData.data.keyWord = text;
+    //get data from course table
+    const courses = await courseModel.fullTextSearchCourse(text);
+    if (courses.length > 0) {
+      retData.data.courses = await getFullDataCourses(courses);
+    } else {
+      const categories = await categoryModel.fullTextSearchCategory(text);
+      if (categories.length > 0) {
+        let arrCourses = [];
+        for (let i = 0; i < categories.length; i++) {
+          let courses = await courseModel.coursesByCategory(categories[i].id);
+          arrCourses = arrCourses.concat(courses);
+        }
+        retData.data.courses=await getFullDataCourses(arrCourses);
+      } else {
+        retData.data.courses = [];
+      }
+    }
+    retData.code = Code.Success;
+    retData.message = Message.Success;
+  } else {
+    retData.code = Code.Bad_Request;
+    retData.message = Message.Bad_Request;
+  }
+
+  return retData;
 }
 
 async function getOutstandingCourses() {
-    let retData = {};
-    const courses = await courseModel.outstandingCourses();
-    retData.code = Code.Success;
-    retData.message = Message.Success;
-    retData.data = courses;
-    
-    return retData;
+  let retData = {};
+  const courses = await courseModel.outstandingCourses();
+  retData.code = Code.Success;
+  retData.message = Message.Success;
+  retData.data = courses;
+
+  return retData;
 }
 
-async function getCommentsOfCourse(course_id){
+async function getCommentsOfCourse(course_id) {
   let retData = {};
   const comments = await courseModel.getComments(course_id);
   retData.code = Code.Success;
@@ -149,13 +192,13 @@ async function getCommentsOfCourse(course_id){
   return retData;
 }
 
-async function addComment(comment){
+async function addComment(comment) {
   let retData = {};
   const result = await courseModel.addComment(comment);
   retData.code = Code.Created_Success;
   retData.message = Message.Created_Success;
   comment.comment_id = result[0];
-  retData.data = {...comment};
+  retData.data = { ...comment };
 
   return retData;
 }
@@ -170,6 +213,6 @@ module.exports = {
   getOutstandingCourses,
   getMostViewCourses,
   getBestSellerCoursesByCategory,
-  getCommentsOfCourse, 
+  getCommentsOfCourse,
   addComment
 };
