@@ -127,16 +127,23 @@ module.exports = {
   },
 
   async getComments(course_id) {
-    const sql = `
-      SELECT comment.content, comment.student_id,
-      comment.course_id, comment.last_update, 
-      account.username FROM comment RIGHT JOIN account ON
-      comment.student_id = account.id
-      WHERE comment.course_id = ${course_id}
-    `
-    const comments = await db.raw(sql);
-
-    return comments[0];
+    const comments = await db
+      .select(
+        'sc.id',
+        'sc.student_id',
+        'ac.fullname',
+        'sc.course_id',
+        'sc.vote',
+        db.raw('date_format(sc.register_date,"%d/%m/%Y") as vote_time'),
+        'sc.comment'
+      )
+      .from('student_course as sc')
+      .where('course_id',course_id)
+      .whereNotNull('comment')
+      .leftJoin('account_detail as ac','ac.account_id','sc.student_id')
+    if(comments)
+        return comments;
+    return null;
   },
 
   async addComment(comment) {
@@ -154,6 +161,7 @@ module.exports = {
     const courses = await db
       .select(
         'course.*',
+        'category.category_name',
         'account_detail.fullname as lecturer_name',
         'account_detail.headline as lecturer_headline',
         'account_detail.description as lecturer_description',
@@ -169,6 +177,7 @@ module.exports = {
       .leftJoin('account_detail', 'account_detail.account_id', 'course.lecturer_id')
       .leftJoin('image', 'image.id', 'course.img_id')
       .leftJoin('student_course as sc', 'sc.course_id', 'course.id')
+      .leftJoin('category', 'category.id', 'course.category_id')
       ;
 
     if (courses.length > 0) {

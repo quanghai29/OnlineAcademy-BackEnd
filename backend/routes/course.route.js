@@ -81,20 +81,22 @@ router.post('/outstanding', async (req, res)=>{
  *    tags: [Course]
  *    parameters:
  *        - in: path
- *          name: id (course_id)
+ *          name: id
  *          required: true
  *          schema:
  *             type: integer
+ *             minimum: 1
+ *             default: 1
  * 
  *    responses:
  *       200: 
  *          description: json data
  */
 router.get('/comments/:id', async function(req, res){
-  const id = +req.params.id || 0;
-  const ret = await courseService.getCommentsOfCourse(id);
+  const course_id = +req.params.id || 0;
+  const ret = await courseService.getCommentsOfCourse(course_id);
   
-  res.status(ret.code).json(ret);
+  res.status(ret.code).json(ret.data);
 })
 
 /**

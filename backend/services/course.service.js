@@ -184,10 +184,13 @@ async function getOutstandingCourses() {
 async function getCommentsOfCourse(course_id) {
   let retData = {};
   const comments = await courseModel.getComments(course_id);
-  retData.code = Code.Success;
-  retData.message = Message.Success;
-  retData.data = comments;
-
+  if(comments === null){
+    retData.code = Code.Not_Found;
+  }else {
+    retData.code = Code.Success;
+    retData.message = Message.Success;
+    retData.data = comments;
+  }
   return retData;
 }
 
