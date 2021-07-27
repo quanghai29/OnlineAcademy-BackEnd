@@ -1,4 +1,4 @@
-const db = require("../utils/db");
+const db = require('../utils/db');
 
 const table_name = 'course';
 module.exports = {
@@ -15,16 +15,17 @@ module.exports = {
     return courses[0];
   },
 
+  updateCourseImage(image_id, course_id) {
+    return db(table_name).where('id', course_id).update({ img_id: image_id });
+  },
+
   add(course) {
     return db(table_name).insert(course);
   },
 
   async allByCategory(category_id) {
     const courses = await db
-      .select(
-        'course.*',
-        'image.img_source',
-        'image.img_title')
+      .select('course.*', 'image.img_source', 'image.img_title')
       .from('course')
       .where('course.category_id', category_id)
       .leftJoin('image', 'image.id', 'course.img_id');
@@ -42,7 +43,7 @@ module.exports = {
     AGAINST ('${text}') as score
     FROM course WHERE MATCH (title, short_description, full_description) 
     AGAINST ('${text}') > 0 ORDER BY score DESC;
-    `
+    `;
     const courses = await db.raw(sql);
 
     if (courses.length === 0) {
@@ -127,17 +128,17 @@ module.exports = {
       account.username FROM comment RIGHT JOIN account ON
       comment.student_id = account.id
       WHERE comment.course_id = ${course_id}
-    `
+    `;
     const comments = await db.raw(sql);
 
     return comments[0];
   },
 
-  async addComment(comment){
+  async addComment(comment) {
     const result = await db('comment').insert({
-      content: comment.content, 
-      student_id: comment.student_id, 
-      course_id: comment.course_id
+      content: comment.content,
+      student_id: comment.student_id,
+      course_id: comment.course_id,
     });
 
     console.log('add comment', result);
@@ -153,26 +154,35 @@ module.exports = {
         'account_detail.description as lecturer_description',
         'account_detail.img_profile as lecturer_imgprofile',
         'image.img_source as course_img_source',
-        'image.img_title as course_img_title')
+        'image.img_title as course_img_title'
+      )
       .from('course')
       .where('course.id', course_id)
-      .leftJoin('account_detail', 'account_detail.account_id', 'course.lecturer_id')
+      .leftJoin(
+        'account_detail',
+        'account_detail.account_id',
+        'course.lecturer_id'
+      )
       .leftJoin('image', 'image.id', 'course.img_id');
 
     if (courses.length > 0) {
       let course = courses[0];
       const chaptersContent = await this.getContentChapter(course_id);
 
-      const chapters_fillter = chaptersContent.map(chapter =>{
-        const temp = chaptersContent.filter(item => item.chapter_id == chapter.chapter_id);
+      const chapters_fillter = chaptersContent.map((chapter) => {
+        const temp = chaptersContent.filter(
+          (item) => item.chapter_id == chapter.chapter_id
+        );
 
-        const videos = temp.map((item)=>{
-          return{
-            video_id :item.video_id,
-            video_title: item.video_title,
-            duration: item.duration
-          }
-        }).filter((item) => item.video_id != null);
+        const videos = temp
+          .map((item) => {
+            return {
+              video_id: item.video_id,
+              video_title: item.video_title,
+              duration: item.duration,
+            };
+          })
+          .filter((item) => item.video_id != null);
 
         return {
           chapter_id: chapter.chapter_id,
@@ -180,18 +190,22 @@ module.exports = {
           course_id: chapter.course_id,
           videos: videos,
           sum_video_chapter: videos.length,
-          sum_duration_chapter: videos.reduce((n,{duration}) => n + duration, 0)
-        }
-      })
-      
+          sum_duration_chapter: videos.reduce(
+            (n, { duration }) => n + duration,
+            0
+          ),
+        };
+      });
+
       const chapters = new Set();
-      chapters_fillter.filter((item) => {
-        
-      })
+      chapters_fillter.filter((item) => {});
 
       course.chapters = chapters;
       course.sum_video_course = chapters.length;
-      course.sum_duration_course = chapters.reduce((n,{sum_duration_chapter}) => n + sum_duration_chapter, 0);
+      course.sum_duration_course = chapters.reduce(
+        (n, { sum_duration_chapter }) => n + sum_duration_chapter,
+        0
+      );
 
       return course;
     }
@@ -207,10 +221,10 @@ module.exports = {
         'chapter.course_id',
         'video.id as video_id',
         'video.title as video_title',
-        'video.duration',
+        'video.duration'
       )
       .from('chapter')
-      .leftJoin('video','video.chapter_id','chapter.id')
+      .leftJoin('video', 'video.chapter_id', 'chapter.id')
       .where('chapter.course_id', course_id)
       .orderBy('chapter.id', 'asc');
   },

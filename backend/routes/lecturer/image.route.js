@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const multer = require('multer');
 const fs = require('fs-extra');
-// const imageService = require('../../services/image.service');
+const imageService = require('../../services/image.service');
 
 //#region TienDung
 
@@ -20,48 +20,45 @@ const fs = require('fs-extra');
  */
 
  const storage =  multer.diskStorage({
-  filename: async function (req, files, cb) {
-
+  filename: async function (req, file, cb) {
+    console.log(req.body);
+    console.log('hehe');
     // lấy course_id
-    var course_id = req.body.course_id;
+    var {course_id, img_title} = req.body;
 
-      //Tạo tên duy nhất
+      //Tạo tên hình ảnh của khóa học
       var filename = course_id + '.png';
 
       //Thêm dữ liệu tên ảnh vào csdl
-      var entityImageProduct= {
-          ProID : id,
-          imgURL: filename,
+      var entityImageCourse= {
+          img_title : img_title,
+          img_sourse: `/img/course/${filename}`,
       };
 
-       //thêm vào  proimage
-      const resultsImageProduct = await productModel.addImageProduct(entityImageProduct);
-      console.log(resultsImageProduct);
+      const resultImageCourse = await imageService.insertImage(entityImageCourse, course_id);
+      console.log(resultImageCourse);
 
       cb(null, filename);
   },
-  destination: function (req, file, cb) {
-    //Lấy mã sản phẩm trên đường dẫn
-    var id = req.params.id;
-    //tạo folder cho image
-    var dir = `./Contents/Images/${id}/`;
-    if (!fs.existsSync(dir)){
-        fs.mkdirSync(dir);
-    }
-    cb(null, dir);
-  },
+  destination: './public/img/course/'
 });
 
-
+const upload = multer({ storage }).single('courseImage');
 
 router.post('/', async (req, res) => {
   if (req.files === null) {
     return res.status(400).json({ msg: 'No file uploaded' });
   }
-  const file = req.files.file;
-  console.log(file.name);
-  console.log(req.body);
-  res.json({ fileName: file.name });
+  // console.log(req.body);
+  // console.log(req.files.file.name);
+
+  upload(req, res, (err) => {
+    if(err) {
+      res.status(401).json({message: err.message});
+    }
+    console.log(req);
+    res.json({ fileName: 'add success' });
+  })
 });
 
 //#endregion
