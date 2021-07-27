@@ -16,16 +16,17 @@ module.exports = {
     return courses[0];
   },
 
+  updateCourseImage(image_id, course_id) {
+    return db(table_name).where('id', course_id).update({ img_id: image_id });
+  },
+
   add(course) {
     return db(table_name).insert(course);
   },
 
   async allByCategory(category_id) {
     const courses = await db
-      .select(
-        'course.*',
-        'image.img_source',
-        'image.img_title')
+      .select('course.*', 'image.img_source', 'image.img_title')
       .from('course')
       .where('course.category_id', category_id)
       .leftJoin('image', 'image.id', 'course.img_id');
@@ -48,7 +49,7 @@ module.exports = {
     AGAINST ('${text}') as score
     FROM course WHERE MATCH (title, short_description, full_description) 
     AGAINST ('${text}') > 0 ORDER BY score DESC;
-    `
+    `;
     const courses = await db.raw(sql);
 
     if (courses.length === 0) {

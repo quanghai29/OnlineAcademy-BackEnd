@@ -4,9 +4,12 @@ const tableName = 'student_course';
 
 module.exports = {
   async getVoteOfCourse(course_id) {
-    const vote = await db(tableName).sum('vote as vote')
-      .where('course_id', course_id);
-    return vote.length > 0 ? vote[0] : 0;
+    const result = await db.raw(
+      `select cast(avg(vote) as decimal(10,1)) as vote from ${tableName}
+      where course_id = ${course_id} `
+    )
+    
+    return result[0];
   },
 
   async getSubscriberOfCourse(course_id) {

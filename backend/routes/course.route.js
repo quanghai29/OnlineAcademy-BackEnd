@@ -190,7 +190,7 @@ router.get('/10-mostview', async (req, res) => {
  */
 
 router.get('/5-bestseller', async (req, res) => {
-  const ret = await courseService.getBestSellerCoursesByCategory(1, 10);
+  const ret = await courseService.getBestSellerCoursesByCategory(1, 5);
   res.status(ret.code).json(ret.data);
 });
 
