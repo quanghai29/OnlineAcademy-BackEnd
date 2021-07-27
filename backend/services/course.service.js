@@ -123,7 +123,8 @@ async function getFullDataCourses(courses) {
   for (let i = 0; i < courses.length; i++) {
     courses[i].author = await accountModel.getAccountDetail(courses[i].lecturer_id);
     temp = await studentCourseModel.getVoteOfCourse(courses[i].id);
-    courses[i].total_vote = +temp.vote;
+  
+    courses[i].avg_vote = +temp[0].vote || 0;
     temp = await studentCourseModel.getSubscriberOfCourse(courses[i].id);
     courses[i].subscriber = temp.subscriber;
     courses[i].image = await imageModel.getImageById(courses[i].img_id);
