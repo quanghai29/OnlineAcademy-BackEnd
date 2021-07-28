@@ -216,8 +216,6 @@ module.exports = {
       course.sum_video_course = chapters.reduce((n, { sum_video_chapter }) => n + sum_video_chapter, 0);
       course.sum_duration_course = chapters.reduce((n, { sum_duration_chapter }) => n + sum_duration_chapter, 0);
 
-      //get voted
-
 
       return course;
     }
