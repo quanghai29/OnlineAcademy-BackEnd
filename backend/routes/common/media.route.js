@@ -78,8 +78,12 @@ router.get('/load_video/:id_video', function (req, res) {
     fs.createReadStream(videoPath).pipe(res);
   }
 })
-
-
 //#endregion
+
+//#region 
+//#endregion
+
+
+
 
 module.exports = router;

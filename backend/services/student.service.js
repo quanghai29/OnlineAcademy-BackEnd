@@ -23,6 +23,27 @@ async function deleteOneFavorite(student_id, course_id){
 }
 //#endregion
 
+//#region QuangHai
+async function getCourseLearning(student_id, course_id){
+  let returnModel = {code: Code.Forbidden, message: Message.Forbidden}; // code; message; data
+  if(student_id === null || course_id === null)
+    return returnModel;
+
+  const course = await studentModel.getCourseLearning(student_id, course_id);
+  if (course == null) {
+    returnModel.code = Code.Not_Found;
+  } else {
+    returnModel.code = Code.Success;
+    returnModel.data = course;
+  }
+  return returnModel;
+}
+
+
+//#endregion
+
 module.exports = {
-  getFavoriteCourses, deleteOneFavorite
+  getFavoriteCourses, 
+  deleteOneFavorite,
+  getCourseLearning
 }

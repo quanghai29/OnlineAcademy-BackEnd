@@ -21,6 +21,7 @@ async function getCourseDetail(id) {
   return returnModel;
 }
 
+
 //#endregion
 
 //#region TienDung
@@ -205,5 +206,5 @@ module.exports = {
   getMostViewCourses,
   getBestSellerCoursesByCategory,
   getCommentsOfCourse,
-  addComment
+  addComment,
 };
