@@ -39,6 +39,7 @@ async function insertCourse(course) {
 async function getLatestCourses(amount) {
   let returnModel = {};
   const ret = await courseModel.getLatestCourses(amount);
+
   if (ret == null) {
     returnModel.code = Code.Not_Found;
   } else {
@@ -48,28 +49,15 @@ async function getLatestCourses(amount) {
   return returnModel;
 }
 
-async function getMostViewVideos(amount) {
-  const ret = await courseModel.getMostViewCourses(amount);
-  return ret;
-}
-
 async function getMostViewCourses(amount) {
   let returnModel = {};
-  const ret = await getMostViewVideos(amount);
+  const ret = await courseModel.getMostViewCourses(amount);
 
-  const ret2 = await Promise.all(
-    ret.map(async (item) => {
-      let course = await courseModel.single(item.course_id);
-      course.view_sum = item.sum_view;
-      return course;
-    })
-  );
-
-  if (ret2 == null) {
+  if (ret == null) {
     returnModel.code = Code.Not_Found;
   } else {
     returnModel.code = Code.Success;
-    returnModel.data = ret2;
+    returnModel.data = ret;
   }
   return returnModel;
 }
@@ -123,11 +111,12 @@ async function getFullDataCourses(courses) {
   let temp = 0;
   for (let i = 0; i < courses.length; i++) {
     courses[i].author = await accountModel.getAccountDetail(courses[i].lecturer_id);
-    temp = await studentCourseModel.getVoteOfCourse(courses[i].id);
-  
+    temp = await studentCourseModel.getAvgVoteOfCourse(courses[i].id);
     courses[i].avg_vote = +temp[0].vote || 0;
+
     temp = await studentCourseModel.getSubscriberOfCourse(courses[i].id);
     courses[i].subscriber = temp.subscriber;
+
     courses[i].image = await imageModel.getImageById(courses[i].img_id);
     delete courses[i].lecturer_id;
     delete courses[i].img_id;
