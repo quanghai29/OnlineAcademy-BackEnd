@@ -60,7 +60,16 @@ module.exports = {
   },
 
   async getLatestCourses(amount) {
-    const courses = await db(table_name)
+    const courses = await db
+      .select(
+        'c.*',
+        db.raw('CAST(AVG(sc.vote) AS DECIMAL(10,1)) AS rating'),
+        'ad.fullname as lecturer_name'
+        )
+      .from('course as c')
+      .leftJoin('student_course as sc', 'sc.course_id', 'c.id')
+      .leftJoin('account_detail as ad', 'ad.account_id', 'c.lecturer_id')
+      .groupBy('c.id')
       .orderBy('create_date', 'desc')
       .limit(amount);
     if (courses.length === 0) {
@@ -72,13 +81,15 @@ module.exports = {
 
   async getMostViewCourses(amount) {
     const courses = await db.raw(`
-    SELECT course_id, sum(views) AS sum_view, DATE_FORMAT(upload_date, '%m/%d/%Y') 
-    FROM video 
-    INNER JOIN chapter 
-    ON chapter_id=chapter.id 
-    WHERE upload_date BETWEEN NOW() - INTERVAL 30 DAY AND NOW() 
-    GROUP BY course_id 
-    ORDER BY sum_view DESC LIMIT ${amount};
+    SELECT c.*, SUM(v.views) AS sum_view, DATE_FORMAT(v.upload_date, '%m/%d/%Y'), CAST(AVG(vote) AS DECIMAL(10,1)) AS rating, ad.fullname as lecturer_name 
+    FROM course AS c 
+    LEFT JOIN chapter AS ch ON c.id = ch.course_id 
+    LEFT JOIN video AS v ON ch.id = v.chapter_id 
+    LEFT JOIN student_course AS sc ON c.id = sc.course_id 
+    LEFT JOIN account_detail AS ad ON c.lecturer_id = ad.account_id 
+    WHERE v.upload_date BETWEEN NOW() - INTERVAL 30 DAY AND NOW() 
+    GROUP BY ch.course_id 
+    ORDER BY sum_view DESC LIMIT ${amount}
     `);
 
     if (courses.length === 0) {
@@ -244,5 +255,19 @@ module.exports = {
     return db
       .from('student_course')
       .where('course_id', course_id)
+  },
+
+  async getVotedAVGCourse(course_id) {
+    const item = await db.raw(`
+    SELECT course_id, CAST(AVG(vote) as DECIMAL(10,1)) as num_rating
+    FROM student_course 
+    WHERE course_id = ${course_id} 
+    GROUP BY course_id;
+    `);
+    if(item[0].length === 0) {
+      return null;
+    }
+    return item[0]; 
   }
 };
+
