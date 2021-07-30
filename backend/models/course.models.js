@@ -207,7 +207,8 @@ module.exports = {
             video_id: item.video_id,
             video_title: item.video_title,
             duration: item.duration,
-            isPreview: item.isPreview
+            isPreview: item.isPreview,
+            video_source: item.video_source,
           }
         }).filter((item) => item.video_id != null);
 
@@ -243,7 +244,8 @@ module.exports = {
         'video.id as video_id',
         'video.title as video_title',
         'video.duration',
-        'video.isPreview'
+        'video.video_source',
+        'video.isPreview',
       )
       .from('chapter')
       .leftJoin('video', 'video.chapter_id', 'chapter.id')

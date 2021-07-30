@@ -40,15 +40,19 @@ module.exports = {
     const chaptersContent = await this.getContentChapter(course_id);
 
     //get chapter and video of course
-    const chapters_fillter = chaptersContent.map(chapter => {
+    const chapters_fillter = chaptersContent.map((chapter,idxChapter) => {
       const temp = chaptersContent.filter(item => item.chapter_id == chapter.chapter_id);
 
-      const videos = temp.map((item) => {
+      const videos = temp.map((item, idxVideo) => {
+        if(idxChapter === 0 && idxVideo === 0){
+          course_learning.video_source_learning = item.video_source;
+        }
         return {
           video_id: item.video_id,
           video_title: item.video_title,
           duration: item.duration,
-          isPreview: item.isPreview
+          video_source: item.video_source,
+          isLearning: true,
         }
       }).filter((item) => item.video_id != null);
 
@@ -78,7 +82,7 @@ module.exports = {
       'video.id as video_id',
       'video.title as video_title',
       'video.duration',
-      'video.isPreview'
+      'video.video_source',
     )
     .from('chapter')
     .leftJoin('video', 'video.chapter_id', 'chapter.id')
