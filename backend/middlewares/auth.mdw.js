@@ -9,7 +9,6 @@ module.exports = function (req, res, next) {
       req.accessTokenPayload = decoded;
       next();
     } catch (err) {
-      
       return res.status(401).json({
         message: 'Invalid access token.'
       });
