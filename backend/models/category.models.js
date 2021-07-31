@@ -1,5 +1,4 @@
 const db = require("../utils/db");
-const { fullTextSearch } = require("./course.models");
 
 const table_name = "category";
 module.exports = {
@@ -19,10 +18,10 @@ module.exports = {
   add(category) {
     return db(table_name).insert(category);
   },
-  
+
   //{duration: số lượng ngày, amount: số dòng lấy}
-  async getMostRegister({duration , amount}){
-    const sql =  `` +
+  async getMostRegister({ duration, amount }) {
+    const sql = `` +
       `SELECT sc.register_date, ct.*, count(*) as register 
       FROM online_academy.student_course as sc 
       inner join online_academy.course as c on sc.course_id = c.id
@@ -31,12 +30,12 @@ module.exports = {
       group by c.category_id
       order by register, sc.register_date desc limit ${amount}`
     const categories = await db.raw(sql);
-    if(categories.length > 0)
+    if (categories.length > 0)
       return categories[0];
     return null;
-  }, 
+  },
 
-  async fullTextSearchCategory(text){
+  async fullTextSearchCategory(text) {
     const sql = `SELECT *, MATCH (category_name) 
     AGAINST ('${text}') as score
     FROM category WHERE MATCH (category_name) 
@@ -44,10 +43,23 @@ module.exports = {
     ORDER BY score DESC`;
     const categories = await db.raw(sql);
 
-    if(categories.length === 0){
+    if (categories.length === 0) {
       return null;
     }
 
     return categories[0];
+  },
+
+  async getExpandedInfo() {
+    const categories = await db(table_name).innerJoin(
+      function () {
+        this.select('category_id')
+        .count('id', {as: 'amount_course'}).from('course')
+        .groupBy('category_id').as('temp')
+      }, 'category.id', '=', 'temp.category_id'
+    )
+
+    return categories;
   }
 };
+
