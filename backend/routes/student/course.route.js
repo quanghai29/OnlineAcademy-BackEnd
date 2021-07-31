@@ -20,11 +20,50 @@ const studentService = require('../../services/student.service');
  *       200:
  *         description: json data if sucess
  */
-router.get('/course/learning/:courseId', async function (req, res) {
-  const student_id = req.header.student_id || 1; //chơi tạm 
+router.get('/learning/:courseId', async function (req, res) {
+
+   //làm tạm accessToken để test
+  req.accessTokenPayload = {
+    userId: 1,
+    role: 1
+  }
+
+  const student_id = req.accessTokenPayload.userId;
   const course_id = req.params.courseId;
   
   const ret = await studentService.getCourseLearning(student_id,course_id)
+  res.status(ret.code).json(ret.data);
+});
+
+/**
+ * @openapi
+ *
+ * /student/course/learning/{courseId}:
+ *   post:
+ *     description: get course learning
+ *     tags: [Student]
+ *     parameters:
+ *        - in: path
+ *          name: courseId
+ *          schema:
+ *            type: integer
+ *            default: 1
+ *          required: true
+ *     responses:
+ *       200:
+ *         description: json data if sucess
+ */
+ router.post('/learning/:courseId', async function (req, res) {
+   //làm tạm accessToken để test
+   req.accessTokenPayload = {
+    userId: 1,
+    role: 1
+  }
+
+  const student_id = req.accessTokenPayload.userId;  
+  const course_id = req.params.courseId;
+  
+  const ret = await studentService.registerCourse(student_id,course_id)
   res.status(ret.code).json(ret.data);
 });
 
@@ -53,6 +92,7 @@ router.get('/course/learning/:courseId', async function (req, res) {
  *       200:
  *         description: json data if sucess
  */
+
 
 //#endregion
 

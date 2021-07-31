@@ -30,4 +30,5 @@ module.exports = function (app) {
   app.use('/student/watchlist', require('../routes/student/watchlist.route'));
   app.use('/student', require('../routes/student/course.route'));
   app.use('/admin/category', require('../routes/admin/category.route'));
+  app.use('/student/course', require('../routes/student/course.route'));
 };
