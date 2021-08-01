@@ -61,6 +61,16 @@ async function registerCourse(student_id, course_id){
     return {code: Code.Created_Fail, message: Message.Created_Fail};
   }
 }
+
+async function updateComment(comment){
+  
+  const result = await studentModel.updateComment(comment);
+  if(result){
+    return {code: Code.Created_Success, message: Message.Success};
+  }else{
+    return {code: Code.Created_Fail, message: Message.Created_Fail}
+  }
+}
 //#endregion
 
 module.exports = {
@@ -68,5 +78,6 @@ module.exports = {
   deleteOneFavorite,
   getCourseLearning,
   getHandleStudentCourse,
-  registerCourse
+  registerCourse,
+  updateComment
 }

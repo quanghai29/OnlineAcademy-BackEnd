@@ -1,15 +1,14 @@
 {
   "type": "object", 
   "required": [
-    "content", 
-    "student_id", 
+    "newRating", 
     "course_id"
   ], 
   "properties":{
-    "content":{
+    "newComment":{
       "type": "string"
     },
-    "student_id":{
+    "newRating":{
       "type": "integer"
     }, 
     "course_id": {
