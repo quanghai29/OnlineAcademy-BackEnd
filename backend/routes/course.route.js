@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const courseService = require('../services/course.service');
-
+const studentService = require('../services/student.service');
 //#region Mai Linh Đồng
 
 /**
@@ -218,8 +218,24 @@ router.get('/5-bestseller', async (req, res) => {
  *         description: json data if sucess
  */
 router.get('/:id', async function (req, res) {
-  const id = req.params.id || 0;
-  const ret = await courseService.getCourseDetail(id);
+  const course_id = req.params.id || 0;
+  const ret = await courseService.getCourseDetail(course_id);
+
+  //làm tạm accessToken để test
+  req.accessTokenPayload = {
+    userId: 1
+  }
+  //get student_id from payload
+  if(req.accessTokenPayload){
+    const student_id = req.accessTokenPayload.userId;
+    const student_course = await studentService.getHandleStudentCourse(student_id, course_id);
+  
+    if(student_course)
+    {
+      ret.data = {...ret.data, ...student_course}
+    }
+  }
+  
   res.status(ret.code).json(ret.data);
 });
 

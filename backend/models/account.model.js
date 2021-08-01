@@ -7,6 +7,10 @@ module.exports = {
     return db(table_name).insert(account);
   },
 
+  addAccountDetail(data){
+    return db('account_detail').insert(data);
+  },
+
   async getSingleAccountByEmail(email) {
     const result = await db(table_name).where('email', email);
     return result.length > 0 ? result[0] : null;

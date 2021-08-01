@@ -34,21 +34,25 @@ module.exports = {
       .leftJoin("course", "course.id", "sc.course_id")
       .where({student_id,course_id});
     
-    if(student_course === null)
+    if(student_course === null || student_course.length == 0)
       return null;
     const course_learning = student_course[0];
     const chaptersContent = await this.getContentChapter(course_id);
 
     //get chapter and video of course
-    const chapters_fillter = chaptersContent.map(chapter => {
+    const chapters_fillter = chaptersContent.map((chapter,idxChapter) => {
       const temp = chaptersContent.filter(item => item.chapter_id == chapter.chapter_id);
 
-      const videos = temp.map((item) => {
+      const videos = temp.map((item, idxVideo) => {
+        if(idxChapter === 0 && idxVideo === 0){
+          course_learning.video_source_learning = item.video_source;
+        }
         return {
           video_id: item.video_id,
           video_title: item.video_title,
           duration: item.duration,
-          isPreview: item.isPreview
+          video_source: item.video_source,
+          isLearning: true,
         }
       }).filter((item) => item.video_id != null);
 
@@ -78,11 +82,45 @@ module.exports = {
       'video.id as video_id',
       'video.title as video_title',
       'video.duration',
-      'video.isPreview'
+      'video.video_source',
     )
     .from('chapter')
     .leftJoin('video', 'video.chapter_id', 'chapter.id')
     .where('chapter.course_id', course_id)
     .orderBy('chapter.id', 'asc');
+  },
+
+  async getHandleStudentCourse(student_id, course_id){
+    const result = {
+      isRegister : false,
+      isFeedbacked : false,
+      isFavorite : false
+    };
+
+    const register = await db('student_course as sc').where({student_id, course_id});
+    if(register.length > 0){
+      result.isRegister = true;
+      if(register[0].vote & register[0].comment){
+        result.isFeedbacked = true;
+      }
+    }
+
+    const favorite = await db('list_favorite').where({student_id, course_id});
+    if(favorite.length > 0){
+      result.isFavorite = true;
+    }
+    return result
+  },
+
+  async add({student_id,course_id}){
+    const checkDuplicate = await db('student_course').where({student_id,course_id});
+    if(checkDuplicate.length > 0)
+      return false;
+
+    const result = await db('student_course').insert({student_id,course_id});
+    console.log(result);
+    if(result.length > 0)
+      return true;
+    return false;
   }
 }

@@ -12,7 +12,6 @@ const rfTokenSchema = require('../schema/rfToken.json');
 const router = express.Router();
 
 router.post('/', validate(loginSchema), async function (req, res) {
-  console.log('user',req.body);
   const ret = await accountService.getAccountByUsername(req.body.username);
   const account = ret.data || null;
   if (account === null) {
@@ -38,7 +37,8 @@ router.post('/', validate(loginSchema), async function (req, res) {
   }
 
   const accessToken = jwt.sign({
-    userId: account.id
+    userId: account.id,
+    role: account.account_role
   }, process.env.JWT_TOKEN, {
     expiresIn: process.env.JWT_EXPIRES_IN // seconds (1 day)
   });

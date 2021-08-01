@@ -15,8 +15,8 @@ async function addWatchlist ({student_id,course_id}) {
   return retData;
 }
 
-async function deleteWatchlist (watchlist_id) {
-  const res = await studentModel.delete(watchlist_id);
+async function deleteWatchlist (student_id,course_id) {
+  const res = await studentModel.delete(student_id,course_id);
   if(res){
     return {code: Code.Deleted_Success, message: Message.Deleted_Success};
   }

@@ -8,6 +8,17 @@ async function createAcc(newAcc) {
   const acc = await accountModel.addAccount(newAcc);
   newAcc.id = acc[0];
   newAcc.password = null;
+
+  const accountDetail = {
+    fullname: '',
+    headline: '',
+    description: '',
+    account_id: newAcc.id,
+    img_profile: -1
+  }
+
+  const insertDetail = await accountModel.addAccountDetail(accountDetail);
+
   result.code = Code.Created_Success;
   result.message = Message.Created_Success;
   result.isExist = false;

@@ -26,7 +26,7 @@ module.exports = {
     return db(table_name).insert(watchcourse);
   },
 
-  delete(id){
-    return db.from(table_name).where('id',id).del();
+  delete(student_id, course_id){
+    return db.from(table_name).where({student_id,course_id}).del();
   }
 }

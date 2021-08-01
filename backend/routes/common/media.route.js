@@ -7,49 +7,49 @@ const fs = require('fs');
 /**
  * @openapi
  * 
- * /common/media/image?path:
+ * /common/media/image/{img_source}:
  *   get:
  *     description: display image
  *     tags: [Common]
  *     parameters:
  *       - in: path
- *         name: path   # Note the name is the same as in the path
+ *         name: img_source   # Note the name is the same as in the path
  *         required: true
  *         schema:
  *           type: string
- *           default: /img/course/1/Trieu-Lo-Tu-Co-Trang.png
+ *           default: /Trieu-Lo-Tu-Co-Trang.png
  *     responses:
  *       200:
  *         description: image display
  */
 router.get('/image/', function (req, res) {
-  const img_path = req.query.path || '/img/course/1/Trieu-Lo-Tu-Co-Trang.png';
-  res.sendFile(path.join(__dirname, '../../public' + img_path));
+  const img_source = req.params.path || 'Trieu-Lo-Tu-Co-Trang.png';
+  res.sendFile(path.join(__dirname, `../../public/img/${img_source}`));
 })
 
 
 /**
  * @openapi
  * 
- * /common/media/load_video/:id_video:
+ * /common/media/load_video/{video_source}:
  *   get:
  *     description: Load Video
  *     tags: [Common]
  *     parameters:
- *       - in: id_video
- *         name: id_video   # Note the name is the same as in the path
+ *       - in: path
+ *         name: video_source   # Note the name is the same as in the path
  *         required: true
  *         schema:
- *           type: int
- *           default: 1
+ *           type: string
+ *           default: "1.mp4"
  *     responses:
  *       200:
  *         description: load video
  */
-router.get('/load_video/:id_video', function (req, res) {
-  const id_video = req.params.id_video || 1;
+router.get('/load_video/:video_source', function (req, res) {
+  const video_source = req.params.video_source || "1.mp4";
   //res.sendFile(path.join(__dirname, `../../public/videos/${id_video}.mp4`));
-  const videoPath = path.join(__dirname, `../../public/videos/${id_video}.mp4`);
+  const videoPath = path.join(__dirname, `../../public/videos/${video_source}`);
   const videoStat = fs.statSync(videoPath);
   const fileSize = videoStat.size;
   const videoRange = req.headers.range;
@@ -79,11 +79,6 @@ router.get('/load_video/:id_video', function (req, res) {
   }
 })
 //#endregion
-
-//#region 
-//#endregion
-
-
 
 
 module.exports = router;
