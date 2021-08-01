@@ -87,6 +87,31 @@ async function getAccountByEmail(email){
 
 //#region TienDung
 
+async function getDetailAccountById(course_id) {
+  const returnModel = {};
+  const result = await accountModel.getAccountDetail(course_id);
+  if(result === null) {
+    returnModel.code = Code.Not_Found;
+  } else {
+    returnModel.code = Code.Success;
+    returnModel.data = result;
+  }
+
+  return returnModel;
+}
+
+async function updateDetailAccountInfo(newAccount, account_id) {
+  const returnModel = {};
+  const result = await accountModel.updateDetailAccountInfo(newAccount, account_id);
+  if(result) {
+    returnModel.code = Code.Success;
+    returnModel.data = newAccount;
+  } else {
+    returnModel.code = Code.Bad_Request;
+  }
+  return returnModel;
+}
+
 async function getAccountByUsername(username) {
   const returnModel = {};
   const account = await accountModel.getSingleAccountByUsername(username);
@@ -127,5 +152,6 @@ async function isValidRefreshToken(id, refreshToken) {
 module.exports = {
   createAcc, updateRefreshToken, isValidRefreshToken,
   checkExistingAccount, sendOtpCodeByEmail, generateCode, activeEmail,
-  getAccountByUsername, getAccountByEmail
+  getAccountByUsername, getAccountByEmail, getDetailAccountById,
+  updateDetailAccountInfo
 }

@@ -1,10 +1,10 @@
 const { Code, Message } = require('../helper/statusCode.helper');
 const courseModel = require('../models/course.models');
 const moment = require('moment');
-const accountModel = require('../models/account.model')
+const accountModel = require('../models/account.model');
 const imageModel = require('../models/image.model');
 const studentCourseModel = require('../models/student_course.model');
-const categoryModel = require("../models/category.models");
+const categoryModel = require('../models/category.models');
 
 //#region Quang Hai MTP
 async function getCourseDetail(id) {
@@ -21,10 +21,27 @@ async function getCourseDetail(id) {
   return returnModel;
 }
 
-
 //#endregion
 
 //#region TienDung
+
+async function getCoursesByLecturerId(lecturer_id) {
+  let returnModel = {};
+  const ret = await courseModel.getCoursesByLecturerId(lecturer_id);
+
+  if (ret == null) {
+    returnModel.code = Code.Not_Found;
+  } else {
+    const courses = ret.map((course) => {
+      course.last_update = moment(course.last_update).format('DD/MM/YYYY');
+      course.create_date = moment(course.create_date).format('DD/MM/YYYY');
+      return course;
+    });
+    returnModel.code = Code.Success;
+    returnModel.data = courses;
+  }
+  return returnModel;
+}
 
 async function insertCourse(course) {
   let returnModel = {};
@@ -110,9 +127,11 @@ async function getCourseByCategory(category_id) {
 async function getFullDataCourses(courses) {
   let temp = 0;
   for (let i = 0; i < courses.length; i++) {
-    courses[i].author = await accountModel.getAccountDetail(courses[i].lecturer_id);
+    courses[i].author = await accountModel.getAccountDetail(
+      courses[i].lecturer_id
+    );
     temp = await studentCourseModel.getVoteOfCourse(courses[i].id);
-  
+
     courses[i].avg_vote = +temp[0].vote || 0;
     temp = await studentCourseModel.getSubscriberOfCourse(courses[i].id);
     courses[i].subscriber = temp.subscriber;
@@ -127,10 +146,10 @@ async function findCourse(text) {
   let retData = {
     data: {
       courses: [],
-      keyWord: ''
+      keyWord: '',
     },
     code: null,
-    message: ''
+    message: '',
   };
   if (text) {
     retData.data.keyWord = text;
@@ -146,7 +165,7 @@ async function findCourse(text) {
           let courses = await courseModel.coursesByCategory(categories[i].id);
           arrCourses = arrCourses.concat(courses);
         }
-        retData.data.courses=await getFullDataCourses(arrCourses);
+        retData.data.courses = await getFullDataCourses(arrCourses);
       } else {
         retData.data.courses = [];
       }
@@ -174,9 +193,9 @@ async function getOutstandingCourses() {
 async function getCommentsOfCourse(course_id) {
   let retData = {};
   const comments = await courseModel.getComments(course_id);
-  if(comments === null){
+  if (comments === null) {
     retData.code = Code.Not_Found;
-  }else {
+  } else {
     retData.code = Code.Success;
     retData.message = Message.Success;
     retData.data = comments;
@@ -207,4 +226,5 @@ module.exports = {
   getBestSellerCoursesByCategory,
   getCommentsOfCourse,
   addComment,
+  getCoursesByLecturerId,
 };

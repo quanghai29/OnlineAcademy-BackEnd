@@ -23,6 +23,12 @@ const courseService = require('../../services/course.service');
      const ret = await courseService.insertCourse(newCourse);
      res.status(ret.code).json(ret.data);
  })
+
+ router.get('/:id', async (req, res) => {
+     const lecturer_id = req.params.id || 0;
+     const ret = await courseService.getCoursesByLecturerId(lecturer_id);
+     res.status(ret.code).json(ret.data);
+ })
  
  //#endregion
 
