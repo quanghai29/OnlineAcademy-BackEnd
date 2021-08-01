@@ -41,12 +41,25 @@ async function findCategory(text) {
     retData.data = result ? result : [];
     retData.code = Code.Success;
     retData.message = Message.Success;
-  }else{
+  } else {
     retData.code = Code.Bad_Request;
     retData.message = Message.Bad_Request;
   }
 
   return retData;
+}
+
+async function getExpandedInfo() {
+  let returnModel = {}; // code; message; data
+  const categories = await categoryModel.getExpandedInfo();
+  categories.forEach(category => {
+    category.last_update = moment(category.last_update).format('DD/MM/YYYY');
+    delete category.category_id;
+  });
+ 
+  returnModel.code = Code.Success;
+  returnModel.categories = categories;
+  return returnModel;
 }
 //#endregion
 
@@ -54,5 +67,6 @@ async function findCategory(text) {
 module.exports = {
   getAllCategory,
   getMostRegister,
-  findCategory
+  findCategory,
+  getExpandedInfo
 };

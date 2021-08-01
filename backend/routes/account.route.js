@@ -74,4 +74,17 @@ router.post('/resend-code', async (req, res) => {
 
 })
 
+router.patch('/detail/:id', async (req, res) => {
+  const id = req.params.id || 0;
+  const newActor = req.body;
+  const ret = await accountService.updateDetailAccountInfo(newActor, id);
+  res.status(ret.code).json(ret.data);
+})
+
+router.get('/detail/:id', async (req, res) => {
+  const id = req.params.id || 0;
+  const ret = await accountService.getDetailAccountById(id);
+  res.status(ret.code).json(ret.data);
+})
+
 module.exports = router;

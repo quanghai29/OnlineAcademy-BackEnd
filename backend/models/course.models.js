@@ -16,6 +16,14 @@ module.exports = {
     return courses[0];
   },
 
+  async getCoursesByLecturerId(lecturer_id) {
+    const courses = await db(table_name).where('lecturer_id', lecturer_id);
+    if(courses.length === 0) {
+      return null;
+    }
+    return courses;
+  },
+
   updateCourseImage(image_id, course_id) {
     return db(table_name).where('id', course_id).update({ img_id: image_id });
   },
@@ -270,6 +278,6 @@ module.exports = {
       return null;
     }
     return item[0]; 
-  }
+  },
 };
 
