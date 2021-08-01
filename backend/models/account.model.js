@@ -42,10 +42,11 @@ module.exports = {
 
   async getAccountDetail(account_id) {
     const accountDetail = await db
-                    .select('ad.*', 'a.email')
+                    .select('ad.*', 'a.email', 'i.img_source')
                     .from('account as a')
                     .where('a.id', account_id)
-                    .leftJoin('account_detail as ad', 'ad.account_id', 'a.id');
+                    .leftJoin('account_detail as ad', 'ad.account_id', 'a.id')
+                    .leftJoin('image as i', 'i.id', 'ad.img_profile');
     return accountDetail.length ? accountDetail[0] : null;
   },
 
