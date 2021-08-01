@@ -1,5 +1,6 @@
 //const { getCourseLearning } = require('../services/student.service');
 const db = require('../utils/db');
+const moment = require('moment');
 
 module.exports = {
   async getFavoriteCoursesOfStudent(student_id){
@@ -122,5 +123,19 @@ module.exports = {
     if(result.length > 0)
       return true;
     return false;
+  },
+
+  async updateComment(comment){
+    const result = await db('student_course')
+      .where({
+        student_id: comment.student_id,
+        course_id: comment.course_id
+      })
+      .update({
+        vote: comment.newRating,
+        comment: comment.newComment,
+        vote_time: moment().format('YYYY-MM-DD hh:mm:ss')
+      })
+    return result > 0;
   }
 }

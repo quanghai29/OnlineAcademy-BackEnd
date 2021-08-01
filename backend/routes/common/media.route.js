@@ -22,8 +22,11 @@ const fs = require('fs');
  *       200:
  *         description: image display
  */
-router.get('/image/', function (req, res) {
-  const img_source = req.params.path || 'Trieu-Lo-Tu-Co-Trang.png';
+router.get('/image/:img_source', function (req, res) {
+  const img_source = req.params.img_source;
+  if(img_source === null){
+    return res.status(404).end();
+  }
   res.sendFile(path.join(__dirname, `../../public/img/${img_source}`));
 })
 

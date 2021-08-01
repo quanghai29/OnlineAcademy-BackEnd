@@ -41,7 +41,15 @@ module.exports = {
   },
 
   async getAccountDetail(account_id) {
-    const accountDetail = await db('account_detail').where('account_id', account_id);
+    const accountDetail = await db
+                    .select('ad.*', 'a.email')
+                    .from('account as a')
+                    .where('a.id', account_id)
+                    .leftJoin('account_detail as ad', 'ad.account_id', 'a.id');
     return accountDetail.length ? accountDetail[0] : null;
+  },
+
+  updateDetailAccountInfo( newAccount, account_id) {
+    return db('account_detail').where('account_id', account_id).update(newAccount);
   }
 };
