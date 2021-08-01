@@ -15,6 +15,15 @@ module.exports = {
     return category[0];
   },
 
+  async singleByName(category_name) {
+    const category = await db(table_name).where("category_name", category_name);
+    if (category.length === 0) {
+      return null;
+    }
+
+    return category[0];
+  },
+
   add(category) {
     return db(table_name).insert(category);
   },
@@ -62,6 +71,17 @@ module.exports = {
     )
 
     return categories[0];
+  },
+
+  async editCategoryItem(data) {
+    const category = await db.raw(
+      `UPDATE category SET category_name = '${data.category_name}',
+        last_update = now()
+        WHERE id = ${data.id}
+      `
+    )
+
+    return category[0];
   }
 };
 
