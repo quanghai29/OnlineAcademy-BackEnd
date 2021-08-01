@@ -7,10 +7,13 @@ const signupSchema = require('../schema/account/signup.account.json')
 router.post('/signup', require('../middlewares/validate.mdw')(signupSchema),
   async (req, res) => {
     const newAcc = req.body;
-    const checkExisting = await accountService.checkExistingAccount(newAcc.username);
-    if (checkExisting.isExist) {
-      res.json(checkExisting);
-    } else {
+    const checkUsername = await accountService.checkExistedUsername(newAcc.username);
+    const checkEmail = await accountService.checkExistedEmail(newAcc.email);
+    if (checkUsername.isExistedUsername) {
+      res.json(checkUsername);
+    } else if(checkEmail.isExistedEmail){
+      res.json(checkEmail);
+    }else {
       newAcc.password = bcrypt.hashSync(newAcc.password, 10);
       const ret = await accountService.createAcc(newAcc);
       delete newAcc.password;
@@ -21,7 +24,7 @@ router.post('/signup', require('../middlewares/validate.mdw')(signupSchema),
         otpCode,
         id: ret.data.id
       }, process.env.JWT_TOKEN, {
-        expiresIn: process.env.OTP_EXPIRES_IN // seconds (60s)
+        expiresIn: process.env.OTP_EXPIRES_IN // seconds
       });
       accountService.sendOtpCodeByEmail(req.body.email, otpCode);
 
@@ -40,6 +43,7 @@ router.post('/verify-code', authMiddleware, validateCodeSchema,
     const tokenPayload = req.accessTokenPayload;
     if (code === tokenPayload.otpCode) {
       //active email
+
       const result = await accountService.activeEmail(tokenPayload.id);
       res.status(result.code).json(result);
     } else {
@@ -58,7 +62,7 @@ router.post('/resend-code', async (req, res) => {
       otpCode,
       id: result.data.id
     }, process.env.JWT_TOKEN, {
-      expiresIn: process.env.OTP_EXPIRES_IN // seconds (60s)
+      expiresIn: process.env.OTP_EXPIRES_IN // seconds
     });
     accountService.sendOtpCodeByEmail(email, otpCode);
 

@@ -54,7 +54,7 @@ async function getExpandedInfo() {
   const categories = await categoryModel.getExpandedInfo();
   categories.forEach(category => {
     category.last_update = moment(category.last_update).format('DD/MM/YYYY');
-    delete category.category_id;
+    delete category.course_id;
   });
  
   returnModel.code = Code.Success;

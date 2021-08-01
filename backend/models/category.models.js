@@ -51,15 +51,17 @@ module.exports = {
   },
 
   async getExpandedInfo() {
-    const categories = await db(table_name).innerJoin(
-      function () {
-        this.select('category_id')
-        .count('id', {as: 'amount_course'}).from('course')
-        .groupBy('category_id').as('temp')
-      }, 'category.id', '=', 'temp.category_id'
+    const categories = await db.raw(
+      `SELECT *, COUNT(course_id) AS amount_course FROM(
+        SELECT category.id, category.category_name,
+        category.last_update, course.id as course_id 
+        FROM category LEFT JOIN course 
+        ON category.id = course.category_id ) AS temp
+        GROUP BY temp.id
+      `
     )
 
-    return categories;
+    return categories[0];
   }
 };
 
