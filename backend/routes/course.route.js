@@ -99,40 +99,6 @@ router.get('/comments/:id', async function(req, res){
   res.status(ret.code).json(ret.data);
 })
 
-/**
- * @openapi
- * 
- * /course/comment:
- *  post:
- *    description: insert a course's comment
- *    tags: [Course]
- *    requestBody:
- *      required: true
- *      content:
- *          application/json:
- *              schema:
- *                  {}
- *                 
- *              example:
- *                  {content: 'content of comment',
- *                   student_id: 1,
- *                    course_id: 1
- *                  }
- *    responses:
- *      201:
- *        description: Create comment successfully
- *      401: 
- *        description: Create comment unsuccessfully
- */
-const commentSchema = require('../schema/comment.json');
-router.post('/comment', require('../middlewares/validate.mdw')(commentSchema) 
-,async function(req,res){
-  const comment = req.body;
-  const result = await courseService.addComment(comment);
-
-  res.status(result.code).json(result);
-})
-
 //#endregion
 
 //#region TienDung
