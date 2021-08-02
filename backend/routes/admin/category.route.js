@@ -18,4 +18,8 @@ router.post('/', async(req, res)=>{
   res.status(result.code).json(result);
 })
 
+router.delete('/', async(req, res)=>{
+  const result = await categoryService.removeItemById(req.headers.category_id);
+  res.status(result.code).json(result);
+})
 module.exports = router;
