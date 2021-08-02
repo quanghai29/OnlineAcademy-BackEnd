@@ -2,6 +2,10 @@ const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const accountService = require('../services/account.service');
+const imageService = require('../services/image.service');
+const multer = require('multer');
+const fs = require('fs-extra');
+const { v4: uuidv4 } = require('uuid');
 
 const signupSchema = require('../schema/account/signup.account.json')
 router.post('/signup', require('../middlewares/validate.mdw')(signupSchema),
@@ -78,11 +82,70 @@ router.post('/resend-code', async (req, res) => {
 
 })
 
+router.post('/change-password', async (req, res) => {
+  const {account_id, old_password, new_password} = req.body;
+  const ret = await accountService.getAccountById(account_id);
+  const old_account = ret.data || null;
+  if(old_account === null) {
+    return res.status(204).end();
+  }
+
+  if (!bcrypt.compareSync(old_password, old_account.password)) {
+    return res.status(400).json({message: 'password wrong'});
+  }
+
+  const newPassword = bcrypt.hashSync(new_password, 10);
+  const ret2 = await accountService.updatePasswordAccount(newPassword, account_id);
+
+  return res.status(ret2.code).end();
+})
+
 router.patch('/detail/:id', async (req, res) => {
   const id = req.params.id || 0;
   const newActor = req.body;
   const ret = await accountService.updateDetailAccountInfo(newActor, id);
   res.status(ret.code).json(ret.data);
+})
+
+const storage = multer.diskStorage({
+  filename: async function (req, file, cb) {
+    const filename = uuidv4() + '.png' ;
+    req.img_source = filename;
+    cb(null, filename);
+  },
+  destination: function(req, file, cb){
+    var dir = `./public/img`;
+      if (!fs.existsSync(dir)){
+          fs.mkdirSync(dir);
+      }
+    cb(null, dir);
+  },
+});
+
+const upload = multer({ storage });
+
+router.post('/image', (req, res) => {
+  if (req.files === null) {
+    return res.status(400).json({ msg: 'No file uploaded' });
+  }
+  upload.single('avatar')( req,res, async err =>{
+    if(err) {
+      res.status(401).end();
+    }
+    //lấy tên file image
+    const img_source = req.img_source;
+    const account_id = req.body.account_id;
+    
+    const entityImageCourse = {
+      img_source: img_source,
+    };
+
+    //xử lý insert vào db
+    const ret = await imageService.insertImage(entityImageCourse);
+    const ret2 = await accountService.updateAccountImage(account_id, ret.data.img_id);
+
+    res.status(ret2.code).json({img_source: img_source});
+  })
 })
 
 router.get('/detail/:id', async (req, res) => {
