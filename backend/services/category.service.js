@@ -54,12 +54,42 @@ async function getExpandedInfo() {
   const categories = await categoryModel.getExpandedInfo();
   categories.forEach(category => {
     category.last_update = moment(category.last_update).format('DD/MM/YYYY');
-    delete category.category_id;
+    delete category.course_id;
   });
- 
+
   returnModel.code = Code.Success;
   returnModel.categories = categories;
   return returnModel;
+}
+
+async function editCategoryItem(data) {
+  let resData = {}
+  const result = await categoryModel.editCategoryItem(data);
+  if (result.changedRows === 1) {
+    resData.code = Code.Success;
+    resData.message = Message.Success;
+  }
+  return resData;
+}
+
+async function createCategoryItem(data) {
+  let resData = {};
+  const existedItem = await categoryModel.singleByName(data.category_name);
+  if (existedItem) {
+    resData.code = Code.Success;
+    resData.existedItem = true;
+  } else {
+    const result = await categoryModel.add(data);
+    if (result.length > 0) {
+      resData.code = Code.Created_Success;
+      resData.message = Message.Created_Success;
+      resData.existedItem = false;
+    } else {
+
+    }
+  }
+
+  return resData;
 }
 //#endregion
 
@@ -68,5 +98,7 @@ module.exports = {
   getAllCategory,
   getMostRegister,
   findCategory,
-  getExpandedInfo
+  getExpandedInfo,
+  editCategoryItem,
+  createCategoryItem
 };

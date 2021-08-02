@@ -26,10 +26,19 @@ async function createAcc(newAcc) {
   return result;
 }
 
-async function checkExistingAccount(username) {
+async function checkExistedUsername(username){
   let result = {};
   const account = await accountModel.getSingleAccountByUsername(username);
-  result.isExist = account ? true : false;
+  result.isExistedUsername = account ? true : false;
+  result.code = Code.Success;
+
+  return result;
+}
+
+async function checkExistedEmail(email){
+  let result = {};
+  const account = await accountModel.getSingleAccountByEmail(email);
+  result.isExistedEmail = account ? true : false;
   result.code = Code.Success;
 
   return result;
@@ -197,7 +206,9 @@ async function isValidRefreshToken(id, refreshToken) {
 
 module.exports = {
   createAcc, updateRefreshToken, isValidRefreshToken,
-  checkExistingAccount, sendOtpCodeByEmail, generateCode, activeEmail,
+  checkExistedUsername, sendOtpCodeByEmail, generateCode, activeEmail,
+  getAccountByUsername, getAccountByEmail,checkExistedEmail
+  , sendOtpCodeByEmail, generateCode, activeEmail,
   getAccountByUsername, getAccountByEmail, getDetailAccountById,
   updateDetailAccountInfo, updateAccountImage, getAccountById,
   updatePasswordAccount
