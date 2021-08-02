@@ -11,6 +11,19 @@ module.exports = {
     return db('account_detail').insert(data);
   },
 
+  async getAccountById(id) {
+    const result = await db(table_name).where('id', id);
+    return result.length > 0 ? result[0] : null;
+  },
+
+  updatePasswordAccount(password, id) {
+    return db(table_name).where('id', id).update({password: password});
+  },
+
+  updateAccountImage(account_id, img_profile) {
+    return db('account_detail').where('account_id', account_id).update({ img_profile: img_profile });
+  },
+
   async getSingleAccountByEmail(email) {
     const result = await db(table_name).where('email', email);
     return result.length > 0 ? result[0] : null;

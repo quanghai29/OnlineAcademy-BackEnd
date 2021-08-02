@@ -25,6 +25,17 @@ async function getCourseDetail(id) {
 
 //#region TienDung
 
+async function updateCourseImage(img_id, course_id) {
+  let returnModel = {};
+  const ret = await courseModel.updateCourseImage(img_id, course_id);
+  if(ret) {
+    returnModel.code = Code.Success;
+  }else {
+    returnModel.code = Code.Bad_Request;
+  }
+  return returnModel;
+}
+
 async function getCoursesByLecturerId(lecturer_id) {
   let returnModel = {};
   const ret = await courseModel.getCoursesByLecturerId(lecturer_id);
@@ -226,4 +237,5 @@ module.exports = {
   getCommentsOfCourse,
   addComment,
   getCoursesByLecturerId,
+  updateCourseImage,
 };

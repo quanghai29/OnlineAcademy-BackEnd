@@ -17,7 +17,11 @@ module.exports = {
   },
 
   async getCoursesByLecturerId(lecturer_id) {
-    const courses = await db(table_name).where('lecturer_id', lecturer_id);
+    const courses = await db
+                      .select('c.*', 'i.img_source')
+                      .from('course as c')
+                      .where('lecturer_id', lecturer_id)
+                      .leftJoin('image as i', 'i.id', 'c.img_id');
     if(courses.length === 0) {
       return null;
     }

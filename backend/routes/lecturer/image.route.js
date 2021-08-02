@@ -3,6 +3,7 @@ const multer = require('multer');
 const fs = require('fs-extra');
 const { v4: uuidv4 } = require('uuid');
 const imageService = require('../../services/image.service');
+const courseService = require('../../services/course.service');
 const path = require('path');
 //#region TienDung
 
@@ -53,9 +54,10 @@ router.post('/', (req, res) => {
     };
 
     //xử lý insert vào db
-    const ret = await imageService.insertImage(entityImageCourse, course_id);
+    const ret = await imageService.insertImage(entityImageCourse);
+    const ret2 = await courseService.updateCourseImage(ret.data.img_id, course_id);
 
-    res.status(ret.code).end();
+    res.status(ret2.code).end();
   })
   
 });
