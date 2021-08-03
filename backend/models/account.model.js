@@ -11,6 +11,19 @@ module.exports = {
     return db('account_detail').insert(data);
   },
 
+  async getAccountById(id) {
+    const result = await db(table_name).where('id', id);
+    return result.length > 0 ? result[0] : null;
+  },
+
+  updatePasswordAccount(password, id) {
+    return db(table_name).where('id', id).update({password: password});
+  },
+
+  updateAccountImage(account_id, img_profile) {
+    return db('account_detail').where('account_id', account_id).update({ img_profile: img_profile });
+  },
+
   async getSingleAccountByEmail(email) {
     const result = await db(table_name).where('email', email);
     return result.length > 0 ? result[0] : null;
@@ -42,10 +55,11 @@ module.exports = {
 
   async getAccountDetail(account_id) {
     const accountDetail = await db
-                    .select('ad.*', 'a.email')
+                    .select('ad.*', 'a.email', 'i.img_source')
                     .from('account as a')
                     .where('a.id', account_id)
-                    .leftJoin('account_detail as ad', 'ad.account_id', 'a.id');
+                    .leftJoin('account_detail as ad', 'ad.account_id', 'a.id')
+                    .leftJoin('image as i', 'i.id', 'ad.img_profile');
     return accountDetail.length ? accountDetail[0] : null;
   },
 

@@ -26,10 +26,19 @@ async function createAcc(newAcc) {
   return result;
 }
 
-async function checkExistingAccount(username) {
+async function checkExistedUsername(username){
   let result = {};
   const account = await accountModel.getSingleAccountByUsername(username);
-  result.isExist = account ? true : false;
+  result.isExistedUsername = account ? true : false;
+  result.code = Code.Success;
+
+  return result;
+}
+
+async function checkExistedEmail(email){
+  let result = {};
+  const account = await accountModel.getSingleAccountByEmail(email);
+  result.isExistedEmail = account ? true : false;
   result.code = Code.Success;
 
   return result;
@@ -98,6 +107,30 @@ async function getAccountByEmail(email){
 
 //#region TienDung
 
+async function getAccountById(id) {
+  const returnModel = {};
+  const result = await accountModel.getAccountById(id);
+  if(result === null) {
+    returnModel.code = Code.Not_Found;
+  } else {
+    returnModel.code = Code.Success;
+    returnModel.data = result;
+  }
+
+  return returnModel;
+}
+
+async function updatePasswordAccount(password, id) {
+  let returnModel = {};
+  const ret = await accountModel.updatePasswordAccount(password, id);
+  if(ret) {
+    returnModel.code = Code.Success;
+  }else {
+    returnModel.code = Code.Bad_Request;
+  }
+  return returnModel;
+}
+
 async function getDetailAccountById(course_id) {
   const returnModel = {};
   const result = await accountModel.getAccountDetail(course_id);
@@ -108,6 +141,17 @@ async function getDetailAccountById(course_id) {
     returnModel.data = result;
   }
 
+  return returnModel;
+}
+
+async function updateAccountImage(account_id, img_profile) {
+  let returnModel = {};
+  const ret = await accountModel.updateAccountImage(account_id, img_profile)
+  if(ret) {
+    returnModel.code = Code.Success;
+  }else {
+    returnModel.code = Code.Bad_Request;
+  }
   return returnModel;
 }
 
@@ -162,7 +206,10 @@ async function isValidRefreshToken(id, refreshToken) {
 
 module.exports = {
   createAcc, updateRefreshToken, isValidRefreshToken,
-  checkExistingAccount, sendOtpCodeByEmail, generateCode, activeEmail,
+  checkExistedUsername, sendOtpCodeByEmail, generateCode, activeEmail,
+  getAccountByUsername, getAccountByEmail,checkExistedEmail
+  , sendOtpCodeByEmail, generateCode, activeEmail,
   getAccountByUsername, getAccountByEmail, getDetailAccountById,
-  updateDetailAccountInfo
+  updateDetailAccountInfo, updateAccountImage, getAccountById,
+  updatePasswordAccount
 }

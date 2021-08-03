@@ -15,6 +15,15 @@ module.exports = {
     return category[0];
   },
 
+  async singleByName(category_name) {
+    const category = await db(table_name).where("category_name", category_name);
+    if (category.length === 0) {
+      return null;
+    }
+
+    return category[0];
+  },
+
   add(category) {
     return db(table_name).insert(category);
   },
@@ -51,15 +60,35 @@ module.exports = {
   },
 
   async getExpandedInfo() {
-    const categories = await db(table_name).innerJoin(
-      function () {
-        this.select('category_id')
-        .count('id', {as: 'amount_course'}).from('course')
-        .groupBy('category_id').as('temp')
-      }, 'category.id', '=', 'temp.category_id'
+    const categories = await db.raw(
+      `SELECT *, COUNT(course_id) AS amount_course FROM(
+        SELECT category.id, category.category_name,
+        category.last_update, course.id as course_id 
+        FROM category LEFT JOIN course 
+        ON category.id = course.category_id ) AS temp
+        GROUP BY temp.id
+      `
     )
 
-    return categories;
+    return categories[0];
+  },
+
+  async editCategoryItem(data) {
+    const category = await db.raw(
+      `UPDATE category SET category_name = '${data.category_name}',
+        last_update = now()
+        WHERE id = ${data.id}
+      `
+    )
+
+    return category[0];
+  },
+
+  async removeItemById(id) {
+    const result = await db(table_name)
+      .where('id', id)
+      .del();
+    return result;
   }
 };
 
