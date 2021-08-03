@@ -91,6 +91,21 @@ async function createCategoryItem(data) {
 
   return resData;
 }
+
+async function removeItemById(id){
+  let resData={};
+  const result = await categoryModel.removeItemById(id);
+
+  if(result===1){
+    resData.code = Code.Deleted_Success;
+    resData.message = Message.Deleted_Success;
+  }else{
+    resData.code = Code.Deleted_Fail;
+    resData.message = Message.Deleted_Fail;
+  }
+
+  return resData;
+}
 //#endregion
 
 
@@ -100,5 +115,6 @@ module.exports = {
   findCategory,
   getExpandedInfo,
   editCategoryItem,
-  createCategoryItem
+  createCategoryItem,
+  removeItemById
 };

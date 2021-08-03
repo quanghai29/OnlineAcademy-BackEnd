@@ -82,6 +82,13 @@ module.exports = {
     )
 
     return category[0];
+  },
+
+  async removeItemById(id) {
+    const result = await db(table_name)
+      .where('id', id)
+      .del();
+    return result;
   }
 };
 
