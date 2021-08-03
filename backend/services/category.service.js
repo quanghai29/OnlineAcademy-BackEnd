@@ -11,7 +11,7 @@ async function getAllCategory() {
     returnModel.code = Code.Not_Found;
   } else {
     categories.forEach(category => {
-      category.last_update = moment(category.last_update).format('DD/MM/YYYY HH:mm:ss');
+      category.last_update = moment(category.last_update).format('DD/MM/YYYY');
     });
     returnModel.code = Code.Success;
     returnModel.data = categories;
