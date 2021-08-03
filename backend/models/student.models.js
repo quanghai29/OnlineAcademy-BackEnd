@@ -101,7 +101,7 @@ module.exports = {
     const register = await db('student_course as sc').where({student_id, course_id});
     if(register.length > 0){
       result.isRegister = true;
-      if(register[0].vote & register[0].comment){
+      if(register[0].vote){
         result.isFeedbacked = true;
       }
     }

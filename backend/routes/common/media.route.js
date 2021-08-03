@@ -27,7 +27,13 @@ router.get('/image/:img_source', function (req, res) {
   if(img_source === null){
     return res.status(404).end();
   }
-  res.sendFile(path.join(__dirname, `../../public/img/${img_source}`));
+  const source_path = path.join(__dirname, `../../public/img/${img_source}`);
+  if(fs.existsSync(source_path)){
+    res.sendFile(path.join(__dirname, `../../public/img/${img_source}`));
+  }else{
+    res.json(404).end();
+  }
+  
 })
 
 
@@ -50,9 +56,12 @@ router.get('/image/:img_source', function (req, res) {
  *         description: load video
  */
 router.get('/load_video/:video_source', function (req, res) {
-  const video_source = req.params.video_source || "1.mp4";
-  //res.sendFile(path.join(__dirname, `../../public/videos/${id_video}.mp4`));
+  const video_source = req.params.video_source;
   const videoPath = path.join(__dirname, `../../public/videos/${video_source}`);
+  if(!fs.existsSync(videoPath)){
+    return res.status(404).end();
+  }
+
   const videoStat = fs.statSync(videoPath);
   const fileSize = videoStat.size;
   const videoRange = req.headers.range;
