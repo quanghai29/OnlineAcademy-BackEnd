@@ -202,6 +202,12 @@ async function isValidRefreshToken(id, refreshToken) {
   return returnModel;
 }
 
+
+async function getMoreInfoAccount (account_id) {
+  const info = await accountModel.getMoreInfoAccount(account_id);
+  return info
+}
+
 //#endregion
 
 module.exports = {
@@ -211,5 +217,5 @@ module.exports = {
   , sendOtpCodeByEmail, generateCode, activeEmail,
   getAccountByUsername, getAccountByEmail, getDetailAccountById,
   updateDetailAccountInfo, updateAccountImage, getAccountById,
-  updatePasswordAccount
+  updatePasswordAccount, getMoreInfoAccount
 }

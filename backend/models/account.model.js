@@ -65,5 +65,20 @@ module.exports = {
 
   updateDetailAccountInfo( newAccount, account_id) {
     return db('account_detail').where('account_id', account_id).update(newAccount);
+  },
+
+  async getMoreInfoAccount(account_id){
+    const info = await db
+      .select(
+        'ad.fullname',
+        'image.img_source'
+      )
+      .from('account_detail as ad')
+      .leftJoin('image', 'image.id', 'ad.img_profile')
+      .where('account_id', account_id)
+      
+    if(info.length > 0)
+        return info[0];
+    return null;
   }
 };
