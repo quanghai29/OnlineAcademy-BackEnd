@@ -5,7 +5,7 @@ module.exports = function (req, res, next) {
     req.headers['x-access-token'] : req.headers['x-otp-token'];
   if (accessToken) {
     try {
-      const decoded = jwt.verify(accessToken, 'HOA_ROI_CUA_PHAT');
+      const decoded = jwt.verify(accessToken, process.env.JWT_TOKEN);
       req.accessTokenPayload = decoded;
       next();
     } catch (err) {
