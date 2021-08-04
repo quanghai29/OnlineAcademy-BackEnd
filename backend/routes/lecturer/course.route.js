@@ -24,10 +24,26 @@ const courseService = require('../../services/course.service');
      res.status(ret.code).json(ret.data);
  })
 
+ router.patch('/:id', async (req, res) => {
+    const id = req.params.id || 0;
+    const newCourse = req.body;
+    const ret = await courseService.updateCourseByCourseId(newCourse, id);
+    res.status(ret.code).json(ret.data);
+ })
+
  router.get('/:id', async (req, res) => {
      const lecturer_id = req.params.id || 0;
      const ret = await courseService.getCoursesByLecturerId(lecturer_id);
      res.status(ret.code).json(ret.data);
+ })
+
+ router.delete('/:id', async (req, res) => {
+    const id = req.params.id || 0;
+    if(id === 0) {
+        return res.status(204).end();
+    }
+    const ret = await courseService.deleteCourseById(id);
+    return res.status(ret.code).json(ret.data);
  })
  
  //#endregion

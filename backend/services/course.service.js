@@ -36,6 +36,30 @@ async function updateCourseImage(img_id, course_id) {
   return returnModel;
 }
 
+async function deleteCourseById(id) {
+  let returnModel = {};
+  const ret = await courseModel.deleteCourseById(id);
+  if(ret) {
+    returnModel.code = Code.Success;
+    returnModel.data = id;
+  } else {
+    returnModel.code = Code.Bad_Request;
+  }
+  return returnModel;
+}
+
+async function updateCourseByCourseId(newCourse, id) {
+  const returnModel = {};
+  const result = await courseModel.updateCourseByCourseId(newCourse, id)
+  if(result) {
+    returnModel.code = Code.Success;
+    returnModel.data = newCourse;
+  } else {
+    returnModel.code = Code.Bad_Request;
+  }
+  return returnModel;
+}
+
 async function getCoursesByLecturerId(lecturer_id) {
   let returnModel = {};
   const ret = await courseModel.getCoursesByLecturerId(lecturer_id);
@@ -238,4 +262,6 @@ module.exports = {
   addComment,
   getCoursesByLecturerId,
   updateCourseImage,
+  updateCourseByCourseId,
+  deleteCourseById,
 };

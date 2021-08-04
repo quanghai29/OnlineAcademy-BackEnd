@@ -16,6 +16,10 @@ module.exports = {
     return courses[0];
   },
 
+  deleteCourseById(id) {
+    return db(table_name).where('id', id).del();
+  },
+
   async getCoursesByLecturerId(lecturer_id) {
     const courses = await db
                       .select('c.*', 'i.img_source')
@@ -30,6 +34,10 @@ module.exports = {
 
   updateCourseImage(image_id, course_id) {
     return db(table_name).where('id', course_id).update({ img_id: image_id });
+  },
+
+  updateCourseByCourseId(newCourse, id) {
+    return db(table_name).where('id', id).update(newCourse);
   },
 
   add(course) {
