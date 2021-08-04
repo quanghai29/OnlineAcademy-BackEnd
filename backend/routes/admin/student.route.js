@@ -2,7 +2,7 @@ const router = require('express').Router();
 const studentService = require('../../services/student.service');
 
 router.get('/', async(req, res)=>{
-  const resData = await studentService.getStudentData();
+  const resData = await studentService.getStudents();
   res.status(resData.code).json(resData.data);
 })
 

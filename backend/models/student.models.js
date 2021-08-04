@@ -139,7 +139,7 @@ module.exports = {
     return result > 0;
   },
 
-  async getStudentData(){
+  async getStudents(){
     const result = await db.select(
       'account.id', 'account.username', 'account.email', 
       'account.create_date', 'account_detail.fullname'

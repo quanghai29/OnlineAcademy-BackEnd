@@ -24,9 +24,9 @@ async function deleteOneFavorite(student_id, course_id) {
   return retData;
 }
 
-async function getStudentData() {
+async function getStudents() {
   let retData = {};
-  const result = await studentModel.getStudentData();
+  const result = await studentModel.getStudents();
   if (result.length > 0) {
     result.forEach(student => {
       student.create_date = moment(student.create_date).format('DD/MM/YYYY');
@@ -107,6 +107,6 @@ module.exports = {
   getHandleStudentCourse,
   registerCourse,
   updateComment,
-  getStudentData,
+  getStudents,
   removeItemById
 }

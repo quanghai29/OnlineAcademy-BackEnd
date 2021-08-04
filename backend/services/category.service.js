@@ -63,11 +63,21 @@ async function getExpandedInfo() {
 }
 
 async function editCategoryItem(data) {
-  let resData = {}
-  const result = await categoryModel.editCategoryItem(data);
-  if (result.changedRows === 1) {
+  let resData = {};
+
+  const existedItem = await categoryModel.singleByName(data.category_name);
+  if (existedItem) {
     resData.code = Code.Success;
-    resData.message = Message.Success;
+    resData.existedItem = true;
+  } else {
+    const result = await categoryModel.editCategoryItem(data);
+    if (result.changedRows === 1) {
+      resData.code = Code.Success;
+      resData.message = Message.Success;
+      resData.existedItem = false;
+    }else{
+
+    }
   }
   return resData;
 }
@@ -92,14 +102,14 @@ async function createCategoryItem(data) {
   return resData;
 }
 
-async function removeItemById(id){
-  let resData={};
+async function removeItemById(id) {
+  let resData = {};
   const result = await categoryModel.removeItemById(id);
 
-  if(result===1){
+  if (result === 1) {
     resData.code = Code.Deleted_Success;
     resData.message = Message.Deleted_Success;
-  }else{
+  } else {
     resData.code = Code.Deleted_Fail;
     resData.message = Message.Deleted_Fail;
   }
