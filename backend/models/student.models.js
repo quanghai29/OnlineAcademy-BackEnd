@@ -137,5 +137,30 @@ module.exports = {
         vote_time: moment().format('YYYY-MM-DD hh:mm:ss')
       })
     return result > 0;
+  },
+
+  async getStudents(){
+    const result = await db.select(
+      'account.id', 'account.username', 'account.email', 
+      'account.create_date', 'account_detail.fullname'
+    ).from('account').leftJoin('account_detail', 'account.id',
+    'account_detail.account_id' ).where('account.account_role', 3);
+
+    return result;
+  },
+
+  async removeItemById(id) {
+    const resultOnAccount = await db('account')
+      .where('id', id)
+      .del();
+    const resultOnAccDetail = await db('account_detail')
+    .where('id', id)
+    .del();
+
+    const result = [
+      resultOnAccount,
+      resultOnAccDetail
+    ]
+    return result;
   }
 }
