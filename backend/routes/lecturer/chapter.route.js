@@ -23,6 +23,23 @@ const chapterService = require('../../services/chapter.service');
      const ret = await chapterService.insertChapter(newChapter);
      res.status(ret.code).json(ret.data);
  })
+
+ router.patch('/:id', async (req, res) => {
+    const id = req.params.id || 0;
+    const newChapter = req.body;
+    const ret = await chapterService.updateChapterById(newChapter, id);
+    res.status(ret.code).json(ret.data);
+ })
+
+ router.get('/:id', async (req, res) => {
+     const course_id = req.params.id || 0;
+     if(course_id === 0) {
+        return res.status(204).end();
+     }
+
+     const ret = await chapterService.getChapterWithVideoByCourseId(course_id);
+     res.status(ret.code).json(ret.data);
+ })
  
  //#endregion
 
