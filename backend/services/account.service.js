@@ -14,6 +14,7 @@ async function createAcc(newAcc) {
     headline: '',
     description: '',
     account_id: newAcc.id,
+    creator: '',
     img_profile: -1
   }
 

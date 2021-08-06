@@ -1,5 +1,6 @@
 const { Code, Message } = require('../helper/statusCode.helper');
 const lecturerModel = require('../models/lecturer.models');
+const accountModel = require('../models/account.model');
 const moment = require('moment');
 
 //#region TienDung
@@ -23,7 +24,7 @@ async function getLecturerById(id) {
 
 //#endregion
 
-async function getLecturers(){
+async function getLecturers() {
   let retData = {};
   const result = await lecturerModel.getLecturers();
   if (result.length > 0) {
@@ -40,7 +41,56 @@ async function getLecturers(){
   return retData;
 }
 
+async function removeItemById(lecturer_id) {
+  let retData = {};
+  const result = await lecturerModel.removeItemById(lecturer_id);
+  retData.code = Code.Success;
+  retData.message = Message.Success;
+  retData.data = result;
+
+  return retData;
+}
+
+async function addLecturerItem(data) {
+  let resData = {};
+  const isUsernameExisted = await lecturerModel.getLecturerByUsername(data.username);
+  if (isUsernameExisted) {
+    resData.code = Code.Success;
+    resData.isUsernameExisted = true;
+  } else {
+    const account= {
+      username: data.username,
+      password: data.password,
+      confirm_email: 1,
+      account_role: 2
+    };
+    const accountResult = await lecturerModel.addLecturer(account);
+    if(accountResult){
+      const account_detail={
+        fullname: '',
+        headline: '',
+        description:'',
+        account_id: accountResult,
+        creator: data.creator,
+        img_profile: -1,
+      }
+      const accountDetailResult = await accountModel.addAccountDetail(account_detail);
+      resData.code = Code.Created_Success;
+      resData.message = Message.Created_Success;
+      resData.isUsernameExisted = false;
+    }else{
+      resData.code = Code.Created_Fail;
+      resData.message = Message.Created_Fail;
+    }
+  }
+
+  return resData;
+}
+
+
 module.exports = {
   getLecturerById,
-  getLecturers
+  getLecturers,
+  removeItemById,
+  addLecturerItem
 };
