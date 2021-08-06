@@ -2,8 +2,7 @@ const jwt = require('jsonwebtoken');
 
 module.exports = function (role) {
   return function (req, res, next) {
-    const accessToken = req.headers['x-access-token'] ?
-      req.headers['x-access-token'] : req.headers['x-otp-token'];
+    const accessToken = req.headers['x-access-token'];
     if (accessToken) {
       try {
         const decoded = jwt.verify(accessToken, process.env.JWT_TOKEN);
