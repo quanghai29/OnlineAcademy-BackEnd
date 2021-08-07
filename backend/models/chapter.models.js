@@ -13,5 +13,11 @@ module.exports = {
     },
     updateChapterbyId(newChapter, id) {
         return db(table_name).where('id', id).update(newChapter);
+    },
+    deleteChapterById(id) {
+        return db(table_name).where('id', id).del();
+    },
+    insertVideo(video) {
+        return db('video').insert(video);
     }
 }
