@@ -180,13 +180,11 @@ async function findCourse(text) {
   let retData = {
     data: {
       courses: [],
-      keyWord: '',
     },
     code: null,
     message: '',
   };
   if (text) {
-    retData.data.keyWord = text;
     //get data from course table
     const courses = await courseModel.fullTextSearchCourse(text);
     if (courses.length > 0) {

@@ -14,12 +14,34 @@ async function insertChapter(chapter) {
   return returnModel;
 }
 
+async function insertVideo(video) {
+  let returnModel = {};
+  const ret = await chapterModel.insertVideo(video);
+  video.id = ret[0];
+  returnModel.code = Code.Created_Success;
+  returnModel.message = Message.Created_Success;
+  returnModel.data = video;
+  return returnModel;
+}
+
 async function updateChapterById(newChapter, id) {
   const returnModel = {};
   const result = await chapterModel.updateChapterbyId(newChapter, id);
   if (result) {
     returnModel.code = Code.Success;
     returnModel.data = newChapter;
+  } else {
+    returnModel.code = Code.Bad_Request;
+  }
+  return returnModel;
+}
+
+async function deleteChapterById(id) {
+  let returnModel = {};
+  const ret = await chapterModel.deleteChapterById(id);
+  if(ret) {
+    returnModel.code = Code.Success;
+    returnModel.data = id;
   } else {
     returnModel.code = Code.Bad_Request;
   }
@@ -52,5 +74,7 @@ async function getChapterWithVideoByCourseId(course_id) {
 module.exports = {
   insertChapter,
   getChapterWithVideoByCourseId,
-  updateChapterById
+  updateChapterById,
+  deleteChapterById,
+  insertVideo
 };
