@@ -17,18 +17,17 @@ const studentService = require('../../services/student.service');
  *            type: integer
  *            default: 1
  *          required: true
+ *        - in: header
+ *          name: x-access-token
+ *          schema:
+ *            type: string
+ *            default: mmm
+ *          required: true
  *     responses:
  *       200:
  *         description: json data if sucess
  */
 router.get('/learning/:courseId', async function (req, res) {
-
-  //làm tạm accessToken để test
-  req.accessTokenPayload = {
-    userId: 1,
-    role: 1
-  }
-
   const student_id = req.accessTokenPayload.userId;
   const course_id = req.params.courseId;
 
@@ -55,12 +54,6 @@ router.get('/learning/:courseId', async function (req, res) {
  *         description: json data if sucess
  */
 router.post('/learning/:courseId', async function (req, res) {
-  //làm tạm accessToken để test
-  req.accessTokenPayload = {
-    userId: 1,
-    role: 1
-  }
-
   const student_id = req.accessTokenPayload.userId;
   const course_id = req.params.courseId;
 
@@ -101,17 +94,11 @@ router.post('/learning/:courseId', async function (req, res) {
  */
 const commentSchema = require('../../schema/comment.json');
 router.post('/comment', require('../../middlewares/validate.mdw')(commentSchema), async (req, res) => {
-  //làm tạm accessToken để test
-  req.accessTokenPayload = {
-    userId: 1,
-    role: 1
-  }
-
   const student_id = req.accessTokenPayload.userId;
   const comment = req.body;
   comment.student_id = student_id;
-  const result = await studentService.updateComment(comment);
 
+  const result = await studentService.updateComment(comment);
   res.status(result.code).json(result.message);
 })
 

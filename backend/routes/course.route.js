@@ -1,6 +1,8 @@
 const router = require('express').Router();
 const courseService = require('../services/course.service');
 const studentService = require('../services/student.service');
+const jwt = require('jsonwebtoken');
+
 //#region Mai Linh Đồng
 
 /**
@@ -26,7 +28,7 @@ const studentService = require('../services/student.service');
 router.get('/', async (req, res) => {
   const category_id = +req.query.category_id || 0;
   const ret = await courseService.getCourseByCategory(category_id);
-  res.status(ret.code).json(ret);
+  res.status(ret.code).json(ret.data);
 });
 
 /**
@@ -67,9 +69,9 @@ router.post('/search', async (req, res) => {
  *          200:
  *              description: json data
  */
-router.post('/outstanding', async (req, res)=>{
-    const ret = await courseService.getOutstandingCourses();
-    res.status(ret.code).json(ret);
+router.post('/outstanding', async (req, res) => {
+  const ret = await courseService.getOutstandingCourses();
+  res.status(ret.code).json(ret);
 })
 
 // ================= get coments of a course =============
@@ -92,10 +94,10 @@ router.post('/outstanding', async (req, res)=>{
  *       200: 
  *          description: json data
  */
-router.get('/comments/:id', async function(req, res){
+router.get('/comments/:id', async function (req, res) {
   const course_id = +req.params.id || 0;
   const ret = await courseService.getCommentsOfCourse(course_id);
-  
+
   res.status(ret.code).json(ret.data);
 })
 
@@ -172,6 +174,10 @@ router.get('/5-bestseller', async (req, res) => {
  *     description: get detail course
  *     tags: [Course]
  *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         schema:
+ *            type: string
  *       - in: path
  *         name: id   # Note the name is the same as in the path
  *         required: true
@@ -187,21 +193,20 @@ router.get('/:id', async function (req, res) {
   const course_id = req.params.id || 0;
   const ret = await courseService.getCourseDetail(course_id);
 
-  //làm tạm accessToken để test
-  req.accessTokenPayload = {
-    userId: 1
-  }
-  //get student_id from payload
-  if(req.accessTokenPayload){
-    const student_id = req.accessTokenPayload.userId;
+  const accessToken = req.headers['x-access-token'];
+  try {
+    const decoded = jwt.verify(accessToken, process.env.JWT_TOKEN);
+    const student_id = decoded.userId;
     const student_course = await studentService.getHandleStudentCourse(student_id, course_id);
-  
-    if(student_course)
-    {
-      ret.data = {...ret.data, ...student_course}
+
+    if (student_course) {
+      ret.data = { ...ret.data, ...student_course }
+    }
+  } catch (error) {
+    if(accessToken){
+      console.log(error);
     }
   }
-  
   res.status(ret.code).json(ret.data);
 });
 

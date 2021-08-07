@@ -22,11 +22,11 @@ module.exports = {
 
   async getCoursesByLecturerId(lecturer_id) {
     const courses = await db
-                      .select('c.*', 'i.img_source')
-                      .from('course as c')
-                      .where('lecturer_id', lecturer_id)
-                      .leftJoin('image as i', 'i.id', 'c.img_id');
-    if(courses.length === 0) {
+      .select('c.*', 'i.img_source')
+      .from('course as c')
+      .where('lecturer_id', lecturer_id)
+      .leftJoin('image as i', 'i.id', 'c.img_id');
+    if (courses.length === 0) {
       return null;
     }
     return courses;
@@ -44,21 +44,26 @@ module.exports = {
     return db(table_name).insert(course);
   },
 
-  async allByCategory(category_id) {
-    const courses = await db
-      .select('course.*', 'image.img_source', 'image.img_title')
+  allByCategory(category_id) {
+    return db
+      .select(
+        'course.*',
+        'ad.fullname',
+        'image.img_source as course_img_source',
+        'image.img_title as course_img_title',
+        db.raw('CAST(AVG(sc.vote) AS DECIMAL(10,1)) AS avg_vote')
+      )
+      .count('sc.id as subscriber')
       .from('course')
       .where('course.category_id', category_id)
-      .leftJoin('image', 'image.id', 'course.img_id');
-    //const courses = await db(table_name).where('category_id', category_id);
-    if (courses.length === 0) {
-      return null;
-    }
-
-    return courses;
+      .leftJoin('image', 'image.id', 'course.img_id')
+      .leftJoin('student_course as sc', 'sc.course_id', 'course.id')
+      .leftJoin('account_detail as ad', 'ad.account_id','course.lecturer_id')
+      .groupBy('course.id')
+      ;
   },
 
-  async coursesByCategory(category_id){
+  async coursesByCategory(category_id) {
     const courses = await db(table_name).where('category_id', category_id);
     return courses;
   },
@@ -85,7 +90,7 @@ module.exports = {
         'c.*',
         db.raw('CAST(AVG(sc.vote) AS DECIMAL(10,1)) AS rating'),
         'ad.fullname as lecturer_name'
-        )
+      )
       .from('course as c')
       .leftJoin('student_course as sc', 'sc.course_id', 'c.id')
       .leftJoin('account_detail as ad', 'ad.account_id', 'c.lecturer_id')
@@ -170,11 +175,11 @@ module.exports = {
         'sc.comment'
       )
       .from('student_course as sc')
-      .where('course_id',course_id)
-      .whereNotNull('comment')
-      .leftJoin('account_detail as ac','ac.account_id','sc.student_id')
-    if(comments)
-        return comments;
+      .where('sc.course_id', course_id)
+      .whereNotNull('vote')
+      .leftJoin('account_detail as ac', 'ac.account_id', 'sc.student_id')
+    if (comments)
+      return comments;
     return null;
   },
 
@@ -185,7 +190,7 @@ module.exports = {
       course_id: comment.course_id
     });
 
-    console.log('add comment', result);
+    //console.log('add comment', result);
     return result;
   },
 
@@ -286,10 +291,10 @@ module.exports = {
     WHERE course_id = ${course_id} 
     GROUP BY course_id;
     `);
-    if(item[0].length === 0) {
+    if (item[0].length === 0) {
       return null;
     }
-    return item[0]; 
+    return item[0];
   },
 };
 

@@ -15,9 +15,9 @@ router.post('/signup', require('../middlewares/validate.mdw')(signupSchema),
     const checkEmail = await accountService.checkExistedEmail(newAcc.email);
     if (checkUsername.isExistedUsername) {
       res.json(checkUsername);
-    } else if(checkEmail.isExistedEmail){
+    } else if (checkEmail.isExistedEmail) {
       res.json(checkEmail);
-    }else {
+    } else {
       newAcc.password = bcrypt.hashSync(newAcc.password, 10);
       const ret = await accountService.createAcc(newAcc);
       delete newAcc.password;
@@ -26,7 +26,7 @@ router.post('/signup', require('../middlewares/validate.mdw')(signupSchema),
       const otpCode = accountService.generateCode();
       const otpToken = jwt.sign({
         otpCode,
-        id: ret.data.id
+        id: ret.data.id,
       }, process.env.JWT_TOKEN, {
         expiresIn: process.env.OTP_EXPIRES_IN // seconds
       });
@@ -38,10 +38,33 @@ router.post('/signup', require('../middlewares/validate.mdw')(signupSchema),
 
   })
 
+
+function authOtp() {
+  return function (req, res, next) {
+    const accessToken = req.headers['x-otp-token'];
+    if (accessToken) {
+      try {
+        const decoded = jwt.verify(accessToken, process.env.JWT_TOKEN);
+        req.accessTokenPayload = decoded;
+        next();
+
+      } catch (err) {
+        return res.status(401).json({
+          message: 'Invalid access token.'
+        });
+      }
+    } else {
+      return res.status(400).json({
+        code: 400,
+        message: 'Access token not found.'
+      })
+    }
+  }
+}
+
 const verifyCodeSchema = require('../schema/account/verifyCode.account.json');
 const validateCodeSchema = require('../middlewares/validate.mdw')(verifyCodeSchema);
-const authMiddleware = require('../middlewares/auth.mdw');
-router.post('/verify-code', authMiddleware, validateCodeSchema,
+router.post('/verify-code', authOtp(), validateCodeSchema,
   async (req, res) => {
     const code = req.body.code;
     const tokenPayload = req.accessTokenPayload;
@@ -83,15 +106,15 @@ router.post('/resend-code', async (req, res) => {
 })
 
 router.post('/change-password', async (req, res) => {
-  const {account_id, old_password, new_password} = req.body;
+  const { account_id, old_password, new_password } = req.body;
   const ret = await accountService.getAccountById(account_id);
   const old_account = ret.data || null;
-  if(old_account === null) {
+  if (old_account === null) {
     return res.status(204).end();
   }
 
   if (!bcrypt.compareSync(old_password, old_account.password)) {
-    return res.status(400).json({message: 'password wrong'});
+    return res.status(400).json({ message: 'password wrong' });
   }
 
   const newPassword = bcrypt.hashSync(new_password, 10);
@@ -109,15 +132,15 @@ router.patch('/detail/:id', async (req, res) => {
 
 const storage = multer.diskStorage({
   filename: async function (req, file, cb) {
-    const filename = uuidv4() + '.png' ;
+    const filename = uuidv4() + '.png';
     req.img_source = filename;
     cb(null, filename);
   },
-  destination: function(req, file, cb){
+  destination: function (req, file, cb) {
     var dir = `./public/img`;
-      if (!fs.existsSync(dir)){
-          fs.mkdirSync(dir);
-      }
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir);
+    }
     cb(null, dir);
   },
 });
@@ -128,14 +151,14 @@ router.post('/image', (req, res) => {
   if (req.files === null) {
     return res.status(400).json({ msg: 'No file uploaded' });
   }
-  upload.single('avatar')( req,res, async err =>{
-    if(err) {
+  upload.single('avatar')(req, res, async err => {
+    if (err) {
       res.status(401).end();
     }
     //lấy tên file image
     const img_source = req.img_source;
     const account_id = req.body.account_id;
-    
+
     const entityImageCourse = {
       img_source: img_source,
     };
@@ -144,7 +167,7 @@ router.post('/image', (req, res) => {
     const ret = await imageService.insertImage(entityImageCourse);
     const ret2 = await accountService.updateAccountImage(account_id, ret.data.img_id);
 
-    res.status(ret2.code).json({img_source: img_source});
+    res.status(ret2.code).json({ img_source: img_source });
   })
 })
 
