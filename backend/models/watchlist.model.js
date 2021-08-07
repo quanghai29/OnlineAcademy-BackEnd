@@ -28,5 +28,26 @@ module.exports = {
 
   delete(student_id, course_id){
     return db.from(table_name).where({student_id,course_id}).del();
+  },
+
+  getWatchlist(student_id){
+    return db
+    .select(
+      'course.*',
+      db.raw('CAST(AVG(sc1.vote) AS DECIMAL(10,1)) AS avg_vote'),
+      'ad.fullname'
+    )
+    .count('sc1.id as subscriber')
+    .from(
+      db
+      .select('*')
+      .from('list_favorite as sc')
+      .where('sc.student_id', student_id)
+      .as('r')
+    )
+    .innerJoin('student_course as sc1', 'sc1.course_id', 'r.course_id')
+    .leftJoin('course', 'course.id', 'r.course_id')
+    .leftJoin('account_detail as ad','ad.account_id', 'course.lecturer_id')
+    .groupBy('r.course_id')
   }
 }

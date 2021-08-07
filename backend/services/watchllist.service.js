@@ -22,9 +22,18 @@ async function deleteWatchlist (student_id,course_id) {
   }
   return {code: Code.Deleted_Fail, message: Message.Deleted_Fail};
 }
+
+async function getWatchlist(student_id){
+  const res = await studentModel.getWatchlist(student_id);
+  if(res){
+    return {code: Code.Success, data: res};
+  }
+  return {code: Code.Forbidden, message: Message.Forbidden};
+}
 //#endregion
 
 module.exports = {
   addWatchlist,
-  deleteWatchlist
+  deleteWatchlist,
+  getWatchlist,
 }

@@ -17,8 +17,6 @@ module.exports = function (role) {
             message: 'Not allow acess'
           })
         }
-
-        
       } catch (err) {
         return res.status(401).json({
           message: 'Invalid access token.'
@@ -27,7 +25,7 @@ module.exports = function (role) {
     } else {
       return res.status(400).json({
         code: 400,
-        message: 'Access token not found.'
+        message: 'You must login before'
       })
     }
   }
