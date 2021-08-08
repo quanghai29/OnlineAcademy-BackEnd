@@ -36,12 +36,36 @@ async function updateChapterById(newChapter, id) {
   return returnModel;
 }
 
+async function updateVideoById(newVideo, id) {
+  const returnModel = {};
+  const result = await chapterModel.updateVideobyId(newVideo, id);
+  if (result) {
+    returnModel.code = Code.Success;
+    returnModel.data = newVideo;
+  } else {
+    returnModel.code = Code.Bad_Request;
+  }
+  return returnModel;
+}
+
 async function deleteChapterById(id) {
   let returnModel = {};
   const ret = await chapterModel.deleteChapterById(id);
   if(ret) {
     returnModel.code = Code.Success;
     returnModel.data = id;
+  } else {
+    returnModel.code = Code.Bad_Request;
+  }
+  return returnModel;
+}
+
+async function deleteVideoById(id) {
+  let returnModel = {};
+  const ret = await chapterModel.deleteVideoById(id);
+  if(ret) {
+    returnModel.code = Code.Success;
+    returnModel.data =id;
   } else {
     returnModel.code = Code.Bad_Request;
   }
@@ -76,5 +100,7 @@ module.exports = {
   getChapterWithVideoByCourseId,
   updateChapterById,
   deleteChapterById,
-  insertVideo
+  insertVideo,
+  updateVideoById,
+  deleteVideoById
 };
