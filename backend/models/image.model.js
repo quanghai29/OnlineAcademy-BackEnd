@@ -6,4 +6,11 @@ module.exports = {
     const image = await db(tableName).where('id', image_id);
     return image.length > 0 ? image[0] : null;
   },
+
+  async deleteById(img_id){
+    const result = await db(tableName)
+    .where('id', img_id).del();
+
+    return result;
+  }
 }

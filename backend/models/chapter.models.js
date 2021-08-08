@@ -19,5 +19,11 @@ module.exports = {
     },
     insertVideo(video) {
         return db('video').insert(video);
+    },
+    
+    deleteChapterByCourseId(course_id){
+      return db.raw(`
+        DELETE FROM chapter WHERE course_id = ${course_id}
+      `)
     }
 }
