@@ -19,5 +19,11 @@ module.exports = {
     },
     insertVideo(video) {
         return db('video').insert(video);
+    },
+    updateVideobyId(newVideo, id) {
+        return db('video').where('id', id).update(newVideo);
+    },
+    deleteVideoById(id) {
+        return db('video').where('id', id).del();
     }
 }
