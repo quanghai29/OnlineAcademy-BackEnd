@@ -90,12 +90,20 @@ async function registerCourse(student_id, course_id) {
 }
 
 async function updateComment(comment) {
-
   const result = await studentModel.updateComment(comment);
   if (result) {
     return { code: Code.Created_Success, message: Message.Success };
   } else {
     return { code: Code.Created_Fail, message: Message.Created_Fail }
+  }
+}
+
+async function getCourseRegister(student_id){
+  const result = await studentModel.getCourseRegister(student_id);
+  if (result) {
+    return { code: Code.Success, data: result};
+  } else {
+    return { code: Code.Bad_Request, message: Message.Bad_Request }
   }
 }
 //#endregion
@@ -108,5 +116,6 @@ module.exports = {
   registerCourse,
   updateComment,
   getStudents,
-  removeItemById
+  removeItemById,
+  getCourseRegister
 }

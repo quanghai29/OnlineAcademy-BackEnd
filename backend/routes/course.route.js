@@ -194,6 +194,9 @@ router.get('/:id', async function (req, res) {
   const ret = await courseService.getCourseDetail(course_id);
 
   const accessToken = req.headers['x-access-token'];
+  if(!accessToken){
+      return res.status(ret.code).json(ret.data).end();
+  }
   try {
     const decoded = jwt.verify(accessToken, process.env.JWT_TOKEN);
     const student_id = decoded.userId;

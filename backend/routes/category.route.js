@@ -1,5 +1,4 @@
 const router = require('express').Router();
-const { json } = require('express');
 const categoryService = require('../services/category.service');
 
 //#region QuangHai
@@ -15,8 +14,8 @@ const categoryService = require('../services/category.service');
  *         description: json data if sucess
  */
  router.get('/', async function (req, res) {
-    const ret = await categoryService.getAllCategory();
-    res.status(ret.code).json(ret.data);
+    const ret = await categoryService.getExpandedInfo();
+    res.status(ret.code).json(ret.categories);
 })
 
 

@@ -38,24 +38,36 @@ router.get('/learning/:courseId', async function (req, res) {
 /**
  * @openapi
  *
- * /student/course/learning/{courseId}:
+ * /student/course/learning:
  *   post:
  *     description: get course learning
  *     tags: [Student]
  *     parameters:
- *        - in: path
- *          name: courseId
+ *        - in: header
+ *          name: x-access-token
  *          schema:
- *            type: integer
- *            default: 1
+ *            type: string
+ *            default: mmm
  *          required: true
+ *     requestBody:
+ *        content:
+ *        application/json:
+ *           schema:
+ *           type: object
+ *           properties:
+ *              course_id:
+ *                type: integer
+ *                default: 1
+ *           encoding:
  *     responses:
  *       200:
  *         description: json data if sucess
  */
-router.post('/learning/:courseId', async function (req, res) {
+router.post('/learning', async function (req, res) {
   const student_id = req.accessTokenPayload.userId;
-  const course_id = req.params.courseId;
+  const course_id = req.body.course_id;
+  if(course_id === undefined)
+    return res.status(400).end();
 
   const ret = await studentService.registerCourse(student_id, course_id)
   res.status(ret.code).json(ret.data);
@@ -102,6 +114,33 @@ router.post('/comment', require('../../middlewares/validate.mdw')(commentSchema)
   res.status(result.code).json(result.message);
 })
 
+
+/**
+ * @openapi
+ *
+ * /student/course/register:
+ *   get:
+ *     description: get course register
+ *     tags: [Student]
+ *     parameters:
+ *        - in: header
+ *          name: x-access-token
+ *          schema:
+ *            type: string
+ *            default: mmm
+ *          required: true
+ *     responses:
+ *       200:
+ *         description: json data if sucess
+ */
+ router.get('/register', async function (req, res) {
+  const student_id = req.accessTokenPayload.userId;
+  const ret = await studentService.getCourseRegister(student_id);
+  if(ret){
+    return res.status(ret.code).json(ret.data);
+  }
+  return res.status(ret.code).json(ret.message);
+});
 
 /**
  * @openapi

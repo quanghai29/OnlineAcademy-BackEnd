@@ -52,6 +52,10 @@ async function findCategory(text) {
 async function getExpandedInfo() {
   let returnModel = {}; // code; message; data
   const categories = await categoryModel.getExpandedInfo();
+
+  if(!categories)
+    return {code: Code.Forbidden, message: Message.Forbidden}
+    
   categories.forEach(category => {
     category.last_update = moment(category.last_update).format('DD/MM/YYYY');
     delete category.course_id;
