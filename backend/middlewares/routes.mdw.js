@@ -23,20 +23,20 @@ module.exports = function (app) {
   app.use('/course', require('../routes/course.route'));
   app.use('/common/media', require('../routes/common/media.route'));
 
-  app.use('/lecturer/course', require('../routes/lecturer/course.route'));
-  app.use('/lecturer/chapter', require('../routes/lecturer/chapter.route'));
-  app.use('/lecturer/image', require('../routes/lecturer/image.route'));
-  app.use('/lecturer/video', require('../routes/lecturer/video.route'));
+  // app.use('/lecturer/course', require('../routes/lecturer/course.route'));
+  // app.use('/lecturer/chapter', require('../routes/lecturer/chapter.route'));
+  // app.use('/lecturer/image', require('../routes/lecturer/image.route'));
+  // app.use('/lecturer/video', require('../routes/lecturer/video.route'));
   app.use('/lecturer', require('../routes/lecturer.route'));
   
   app.use('/category',require('../routes/category.route'));
   app.use('/account', require('../routes/account.route'));
 
   //route lecturer
-  // app.use('/lecturer/course', auth(ROLE_LECTURER), require('../routes/lecturer/course.route'));
-  // app.use('/lecturer/chapter', auth(ROLE_LECTURER), require('../routes/lecturer/chapter.route'));
-  // app.use('/lecturer/image', auth(ROLE_LECTURER),require('../routes/lecturer/image.route'));
-  // app.use('/lecturer/video', auth(ROLE_LECTURER), require('../routes/lecturer/video.route'));
+  app.use('/lecturer/course', auth(ROLE_LECTURER), require('../routes/lecturer/course.route'));
+  app.use('/lecturer/chapter', auth(ROLE_LECTURER), require('../routes/lecturer/chapter.route'));
+  app.use('/lecturer/image', auth(ROLE_LECTURER),require('../routes/lecturer/image.route'));
+  app.use('/lecturer/video', auth(ROLE_LECTURER), require('../routes/lecturer/video.route'));
 
   //route student
   app.use('/student/watchlist',  auth(ROLE_STUDENT),require('../routes/student/watchlist.route'));

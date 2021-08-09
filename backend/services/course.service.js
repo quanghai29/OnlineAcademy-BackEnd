@@ -16,10 +16,32 @@ async function getCourseDetail(id) {
   if (course == null) {
     returnModel.code = Code.Not_Found;
   } else {
+    // change formart date
     course.last_update = moment(course.last_update).format('MM/YYYY');
     course.create_date = moment(course.create_date).format('DD/MM/YYYY');
+
+    // check isbestSellerCourse
+    let isBestseller = false;
+    const bestSellerCourse = await courseModel.getBestSellerCourse();
+    if(bestSellerCourse[course.id]){
+      isBestseller = true;
+    }
+    course.isBestseller = isBestseller;
+
     returnModel.code = Code.Success;
     returnModel.data = course;
+  }
+  return returnModel;
+}
+
+async function getBestSellerCourse() {
+  let returnModel = {}; // code; message; data
+  const courses = await courseModel.getBestSellerCourse();
+  if (courses == null) {
+    returnModel.code = Code.Not_Found;
+  } else {
+    returnModel.code = Code.Success;
+    returnModel.data = courses;
   }
   return returnModel;
 }
@@ -67,8 +89,9 @@ async function getCoursesByLecturerId(lecturer_id) {
   let returnModel = {};
   const ret = await courseModel.getCoursesByLecturerId(lecturer_id);
 
-  if (ret == null) {
+  if (ret === null) {
     returnModel.code = Code.Not_Found;
+    returnModel.data = [];
   } else {
     const courses = ret.map((course) => {
       course.last_update = moment(course.last_update).format('DD/MM/YYYY');
@@ -117,28 +140,15 @@ async function getMostViewCourses(amount) {
   return returnModel;
 }
 
-async function getBestSellerStudent_CoursesByCategory(catId, amount) {
-  const ret = await courseModel.getBestSellerCourseByCategory(catId, amount);
-  return ret;
-}
-
 async function getBestSellerCoursesByCategory(catId, amount) {
   let returnModel = {};
-  const ret = await getBestSellerStudent_CoursesByCategory(catId, amount);
-
-  const ret2 = await Promise.all(
-    ret.map(async (item) => {
-      let course = await courseModel.single(item.course_id);
-      course.view_sum = item.sum_view;
-      return course;
-    })
-  );
-
-  if (ret2 == null) {
+  const ret = await courseModel.getBestSellerCourseByCategory(catId, amount);
+  
+  if (ret === null) {
     returnModel.code = Code.Not_Found;
   } else {
     returnModel.code = Code.Success;
-    returnModel.data = ret2;
+    returnModel.data = ret;
   }
   return returnModel;
 }
@@ -335,6 +345,7 @@ module.exports = {
   updateCourseImage,
   updateCourseByCourseId,
   deleteCourseById,
+  getBestSellerCourse,
   getCoursesForAdmin,
   deleteById
 };
