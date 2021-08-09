@@ -47,4 +47,5 @@ module.exports = function (app) {
   app.use('/admin/category', auth(ROLE_ADMIN),require('../routes/admin/category.route'));
   app.use('/admin/student',  auth(ROLE_ADMIN),  require('../routes/admin/student.route'));
   app.use('/admin/lecturer',  auth(ROLE_ADMIN), require('../routes/admin/lecturer.route'));
+  app.use('/admin/course', auth(ROLE_ADMIN), require('../routes/admin/course.route'));
 };

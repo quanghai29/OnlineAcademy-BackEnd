@@ -338,7 +338,25 @@ module.exports = {
         [item['course_id']]: item,
       };
     }, {});
+    return result ;
+
+  },
+  async getCoursesForAdmin(){
+    const courses = await db.select('course.id as course_id', 'course.category_id', 
+    'course.title', 'course.create_date', 'course.last_update', 'course.short_description',
+    'course.course_status','account_detail.fullname as creator', 'image.img_title', 
+    'image.img_source')
+    .from('course').leftJoin('account_detail', 'course.lecturer_id', 'account_detail.account_id')
+    .leftJoin('image', 'image.id', 'course.img_id');
+
+    return courses.length ? courses : null;
+  },
+
+  async deleteById(id){
+    const result = await db(table_name)
+    .where('id', id).del();
+
     return result;
-  }
+  },
 };
 

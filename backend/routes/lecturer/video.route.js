@@ -2,6 +2,7 @@ const router = require('express').Router();
 const multer = require('multer');
 const fs = require('fs-extra');
 const { v4: uuidv4 } = require('uuid');
+const path = require('path');
 const chapterService = require('../../services/chapter.service');
 //#region TienDung
 
@@ -51,7 +52,8 @@ router.post('/', (req, res) => {
       chapter_id: req.body.chapter_id,
       title: req.body.title,
       duration: req.body.duration,
-      source: req.video_source
+      isPreview: req.body.isPreview,
+      video_source: req.video_source
     };
 
     //xử lý insert vào db
@@ -60,6 +62,30 @@ router.post('/', (req, res) => {
     res.status(ret.code).json(ret.data);
   })
   
+});
+
+router.patch('/:id', async (req, res) => {
+  const id = req.params.id || 0;
+  const newVideo = req.body;
+  const ret = await chapterService.updateVideoById(newVideo, id);
+  res.status(ret.code).json(ret.data);
+});
+
+router.delete('/:id', async (req, res) => {
+  const id = req.params.id || 0;
+  if (id === 0) {
+    return res.status(204).end();
+  }
+  console.log(req.body);
+  fs.unlink(path.join(__dirname, `../../public/videos/${req.body.vid_source}`), async (err) => {
+    if(err) {
+      console.error(err);
+      return res.status(400).end();
+    }
+    console.log('remove successfully');
+    const ret = await chapterService.deleteVideoById(id);
+    return res.status(ret.code).json(ret.data);
+  })
 });
 
 //#endregion
