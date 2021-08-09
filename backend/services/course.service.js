@@ -64,8 +64,9 @@ async function getCoursesByLecturerId(lecturer_id) {
   let returnModel = {};
   const ret = await courseModel.getCoursesByLecturerId(lecturer_id);
 
-  if (ret == null) {
+  if (ret === null) {
     returnModel.code = Code.Not_Found;
+    returnModel.data = [];
   } else {
     const courses = ret.map((course) => {
       course.last_update = moment(course.last_update).format('DD/MM/YYYY');
