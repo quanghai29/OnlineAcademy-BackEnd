@@ -105,6 +105,12 @@ router.post('/resend-code', async (req, res) => {
 
 })
 
+router.post('/forgot-password', async(req, res)=>{
+  const {email} = req.body;
+  const result = await accountService.renewPassword(email);
+  res.status(result.code).json(result);
+})
+
 router.post('/change-password', async (req, res) => {
   const { account_id, old_password, new_password } = req.body;
   const ret = await accountService.getAccountById(account_id);
