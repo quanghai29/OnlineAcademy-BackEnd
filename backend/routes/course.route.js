@@ -132,7 +132,6 @@ router.get('/10-latest', async (req, res) => {
  *      description: get 10 latest courses
  *      tags: [Course]
  *      parameters:
- *
  *      responses:
  *          200:
  *              description: json data
@@ -146,25 +145,50 @@ router.get('/10-mostview', async (req, res) => {
 /**
  * @openapi
  *
- * /course/5-bestseller:
+ * /course/bestseller-category/{category_id}:
  *  get:
  *      description: get 5 best seller by category
  *      tags: [Course]
  *      parameters:
- *
+ *       - in: path
+ *         name: category_id   # Note the name is the same as in the path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
  *      responses:
  *          200:
  *              description: json data
  */
 
-router.get('/5-bestseller', async (req, res) => {
-  const ret = await courseService.getBestSellerCoursesByCategory(1, 5);
+router.get('/bestseller-category/:category_id', async (req, res) => {
+  const category_id = req.params.category_id;
+  const ret = await courseService.getBestSellerCoursesByCategory(category_id, 5);
   res.status(ret.code).json(ret.data);
 });
 
 //#endregion
 
 //#region QuangHai
+
+
+/**
+ * @openapi
+ *
+ * /course/mostbestseller:
+ *   get:
+ *     description: get detail course
+ *     tags: [Course]
+ *     responses:
+ *       200:
+ *         description: json data if sucess
+ */
+ router.get('/mostbestseller', async function (req, res) {
+  const ret = await courseService.getBestSellerCourse();
+  res.status(ret.code).json(ret.data);
+});
+
 
 /**
  * @openapi
