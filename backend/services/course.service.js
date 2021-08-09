@@ -5,6 +5,9 @@ const accountModel = require('../models/account.model');
 const imageModel = require('../models/image.model');
 const studentCourseModel = require('../models/student_course.model');
 const categoryModel = require('../models/category.models');
+const chapterModel = require('../models/chapter.models');
+const videoModel = require('../models/video.model')
+const fs = require('fs-extra');
 
 //#region Quang Hai MTP
 async function getCourseDetail(id) {
@@ -13,10 +16,32 @@ async function getCourseDetail(id) {
   if (course == null) {
     returnModel.code = Code.Not_Found;
   } else {
+    // change formart date
     course.last_update = moment(course.last_update).format('MM/YYYY');
     course.create_date = moment(course.create_date).format('DD/MM/YYYY');
+
+    // check isbestSellerCourse
+    let isBestseller = false;
+    const bestSellerCourse = await courseModel.getBestSellerCourse();
+    if(bestSellerCourse[course.id]){
+      isBestseller = true;
+    }
+    course.isBestseller = isBestseller;
+
     returnModel.code = Code.Success;
     returnModel.data = course;
+  }
+  return returnModel;
+}
+
+async function getBestSellerCourse() {
+  let returnModel = {}; // code; message; data
+  const courses = await courseModel.getBestSellerCourse();
+  if (courses == null) {
+    returnModel.code = Code.Not_Found;
+  } else {
+    returnModel.code = Code.Success;
+    returnModel.data = courses;
   }
   return returnModel;
 }
@@ -28,9 +53,9 @@ async function getCourseDetail(id) {
 async function updateCourseImage(img_id, course_id) {
   let returnModel = {};
   const ret = await courseModel.updateCourseImage(img_id, course_id);
-  if(ret) {
+  if (ret) {
     returnModel.code = Code.Success;
-  }else {
+  } else {
     returnModel.code = Code.Bad_Request;
   }
   return returnModel;
@@ -39,7 +64,7 @@ async function updateCourseImage(img_id, course_id) {
 async function deleteCourseById(id) {
   let returnModel = {};
   const ret = await courseModel.deleteCourseById(id);
-  if(ret) {
+  if (ret) {
     returnModel.code = Code.Success;
     returnModel.data = id;
   } else {
@@ -51,7 +76,7 @@ async function deleteCourseById(id) {
 async function updateCourseByCourseId(newCourse, id) {
   const returnModel = {};
   const result = await courseModel.updateCourseByCourseId(newCourse, id)
-  if(result) {
+  if (result) {
     returnModel.code = Code.Success;
     returnModel.data = newCourse;
   } else {
@@ -115,28 +140,15 @@ async function getMostViewCourses(amount) {
   return returnModel;
 }
 
-async function getBestSellerStudent_CoursesByCategory(catId, amount) {
-  const ret = await courseModel.getBestSellerCourseByCategory(catId, amount);
-  return ret;
-}
-
 async function getBestSellerCoursesByCategory(catId, amount) {
   let returnModel = {};
-  const ret = await getBestSellerStudent_CoursesByCategory(catId, amount);
-
-  const ret2 = await Promise.all(
-    ret.map(async (item) => {
-      let course = await courseModel.single(item.course_id);
-      course.view_sum = item.sum_view;
-      return course;
-    })
-  );
-
-  if (ret2 == null) {
+  const ret = await courseModel.getBestSellerCourseByCategory(catId, amount);
+  
+  if (ret === null) {
     returnModel.code = Code.Not_Found;
   } else {
     returnModel.code = Code.Success;
-    returnModel.data = ret2;
+    returnModel.data = ret;
   }
   return returnModel;
 }
@@ -246,6 +258,76 @@ async function addComment(comment) {
 
   return retData;
 }
+
+async function getCoursesForAdmin() {
+  let retData = {
+    code: Code.Success,
+    message: Message.Success
+  };
+  const courses = await courseModel.getCoursesForAdmin();
+  courses.forEach(course => {
+    course.last_update = moment(course.last_update).format('DD/MM/YYYY');
+  });
+  retData.data = courses;
+
+  return retData;
+}
+
+async function deleteById(course_id) {
+  const course = await courseModel.single(course_id);
+  if (course) {
+    const { id, img_id } = course;
+
+    const img = await imageModel.getImageById(img_id);
+    const { img_source } = img;
+    let imgFilePath = '';
+
+    //delete course's image
+    imageModel.deleteById(img_id);  //delete img in db
+    if (img_source) {
+      imgFilePath = `./public/img/${img_source}`;
+      try{
+        fs.unlinkSync(imgFilePath);//delete img file in server
+      }catch(err){
+        console.log(err);
+      }
+    }
+
+    const chapters = await chapterModel.getChapterByCourseId(id);
+
+    //delete chapter by course_id in db
+    const deleteChapterResult = await chapterModel.deleteChapterByCourseId(id);
+
+    //delete chapter's videos
+    chapters.forEach(async (chapter) => {
+      let videos = await videoModel.getAllByChapterId(chapter.id);
+
+      //delete videos by chapter_id in db
+      await videoModel.deleteVideoByChapterId(chapter.id);
+
+      //delete video files in server
+      videos.forEach(video => {
+        let videoFilePath='';
+        if (video.video_source) {
+          videoFilePath = `./public/videos/${video.video_source}`;
+          try{
+            fs.unlinkSync(videoFilePath);
+          }catch(err){
+            console.log(err);
+          }
+        }
+      })
+    })
+
+    //delete course by course_id
+    await courseModel.deleteById(id);
+  }
+
+  return retData = {
+    code: Code.Deleted_Success,
+    message: Message.Deleted_Success
+  }
+}
 //#endregion
 
 module.exports = {
@@ -263,4 +345,7 @@ module.exports = {
   updateCourseImage,
   updateCourseByCourseId,
   deleteCourseById,
+  getBestSellerCourse,
+  getCoursesForAdmin,
+  deleteById
 };

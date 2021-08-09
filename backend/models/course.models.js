@@ -1,5 +1,5 @@
-const { getBestSellerCoursesByCategory } = require("../services/course.service");
 const db = require("../utils/db");
+const moment = require('moment');
 
 const table_name = 'course';
 module.exports = {
@@ -58,7 +58,7 @@ module.exports = {
       .where('course.category_id', category_id)
       .leftJoin('image', 'image.id', 'course.img_id')
       .leftJoin('student_course as sc', 'sc.course_id', 'course.id')
-      .leftJoin('account_detail as ad', 'ad.account_id','course.lecturer_id')
+      .leftJoin('account_detail as ad', 'ad.account_id', 'course.lecturer_id')
       .groupBy('course.id')
       ;
   },
@@ -126,20 +126,37 @@ module.exports = {
 
   async getBestSellerCourseByCategory(catId, amount) {
     const courses = await db.raw(`
-    SELECT course_id, COUNT(*) AS total_course, DATE_FORMAT(register_date, '%m/%d/%Y') 
-    FROM student_course 
-    INNER JOIN course 
-    ON course_id = course.id 
-    WHERE (register_date BETWEEN NOW() - INTERVAL 30 DAY AND NOW()) AND category_id=${catId} 
-    GROUP BY course_id
-    ORDER BY total_course DESC LIMIT ${amount};
-    `);
+      SELECT 
+        r.*,
+        ad.fullname,
+        CAST(AVG(sc.vote) AS DECIMAL(10,1)) AS avg_vote,
+        count(sc.id) as subscriber
+      FROM (
+        SELECT 
+          c.*,
+          count(sc.id) as num_register_month, 
+          sc.register_date as lastest_register
+        FROM course as c
+        left join student_course as sc
+          on sc.course_id = c.id
+        where 1 = 1
+          and c.category_id = ${catId}
+          and sc.register_date BETWEEN NOW() - INTERVAL 1 month AND NOW()
+          group by sc.course_id
+          order by num_register_month desc, sc.register_date desc
+          limit ${amount}
+      ) as r
+      left join online_academy.student_course as sc
+        on sc.course_id = r.id
+      left join online_academy.account_detail as ad
+        on ad.account_id = r.lecturer_id
+      group by sc.course_id
+    `)
 
-    if (courses.length === 0) {
-      return null;
-    }
-
+    if(courses.length === 0)
+        return null
     return courses[0];
+    //return db.raw(`call getBestsellerOfCategory(1,5)`);
   },
 
   async outstandingCourses() {
@@ -171,7 +188,7 @@ module.exports = {
         'ac.fullname',
         'sc.course_id',
         'sc.vote',
-        db.raw('date_format(sc.register_date,"%d/%m/%Y") as vote_time'),
+        db.raw('date_format(sc.vote_time,"%d/%m/%Y") as vote_time'),
         'sc.comment'
       )
       .from('student_course as sc')
@@ -295,6 +312,51 @@ module.exports = {
       return null;
     }
     return item[0];
+  },
+
+  async getBestSellerCourse() {
+    const courses = await db.raw(
+      `
+      SELECT 
+        sc.course_id,
+        count(sc.id) as num_register_month, 
+        sc.register_date as lastest_register
+      from student_course as sc
+      where sc.register_date BETWEEN NOW() - INTERVAL 7 day AND NOW()
+      group by sc.course_id
+      order by num_register_month desc, sc.register_date desc
+      limit 5
+      `
+    )
+
+    if(courses === null)
+      return null
+    
+    const result = courses[0].reduce((obj, item) => {
+      return {
+        ...obj,
+        [item['course_id']]: item,
+      };
+    }, {});
+    return result ;
+
+  },
+  async getCoursesForAdmin(){
+    const courses = await db.select('course.id as course_id', 'course.category_id', 
+    'course.title', 'course.create_date', 'course.last_update', 'course.short_description',
+    'course.course_status','account_detail.fullname as creator', 'image.img_title', 
+    'image.img_source')
+    .from('course').leftJoin('account_detail', 'course.lecturer_id', 'account_detail.account_id')
+    .leftJoin('image', 'image.id', 'course.img_id');
+
+    return courses.length ? courses : null;
+  },
+
+  async deleteById(id){
+    const result = await db(table_name)
+    .where('id', id).del();
+
+    return result;
   },
 };
 
