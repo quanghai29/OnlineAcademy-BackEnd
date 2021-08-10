@@ -338,7 +338,7 @@ async function deleteById(course_id) {
 
   return retData = {
     code: Code.Deleted_Success,
-    message: Message.Deleted_Success
+    message: Message.Deleted_Success,
   }
 }
 //#endregion
