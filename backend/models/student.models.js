@@ -38,7 +38,7 @@ module.exports = {
     if(student_course === null || student_course.length == 0)
       return null;
     const course_learning = student_course[0];
-    const chaptersContent = await this.getContentChapter(course_id);
+    const chaptersContent = await this.getContentChapter(course_id, student_id);
 
     //get chapter and video of course
     const chapters_fillter = chaptersContent.map((chapter,idxChapter) => {
@@ -47,6 +47,12 @@ module.exports = {
       const videos = temp.map((item, idxVideo) => {
         if(idxChapter === 0 && idxVideo === 0){
           course_learning.video_source_learning = item.video_source;
+          course_learning.video_id_learning = item.video_id;
+        }
+        let current_time = 0; let status_completed = 0;
+        if(item.current_time != null && item.status_completed != null){
+          current_time = item.current_time,
+          status_completed = item.status_completed
         }
         return {
           video_id: item.video_id,
@@ -54,6 +60,8 @@ module.exports = {
           duration: item.duration,
           video_source: item.video_source,
           isLearning: true,
+          current_time,
+          status_completed
         }
       }).filter((item) => item.video_id != null);
 
@@ -74,7 +82,7 @@ module.exports = {
     return course_learning;
   },
 
-  getContentChapter(course_id){
+  getContentChapter(course_id, student_id){
     return db
     .select(
       'chapter.id as chapter_id',
@@ -84,9 +92,16 @@ module.exports = {
       'video.title as video_title',
       'video.duration',
       'video.video_source',
+      'sv.current_time',
+      'sv.status_completed',
     )
     .from('chapter')
     .leftJoin('video', 'video.chapter_id', 'chapter.id')
+    .leftJoin('student_video as sv',function(){
+      this
+        .on('sv.video_id', 'video.id')
+        .on('sv.student_id', student_id)
+    })
     .where('chapter.course_id', course_id)
     .orderBy('chapter.id', 'asc');
   },
@@ -197,5 +212,53 @@ module.exports = {
     .leftJoin('course','course.id','sc.course_id')
     .leftJoin('account_detail as ad','ad.account_id', student_id)
     .groupBy('course.id')
+  },
+
+  async UpdateStudentVideo(props){
+    //check exist record
+    const row = await db('student_video')
+      .where({
+        student_id: props.student_id,
+        video_id: props.video_id
+      })
+    if(row === null){
+      return null;
+    }
+    
+    let result = null;
+    if(row.length === 0){
+      //insert
+      result = await db('student_video')
+        .insert({
+          student_id: props.student_id,
+          video_id: props.video_id,
+          current_time: props.current_time
+        })
+    }else{
+      //update
+      result = await db('student_video')
+        .where({
+          student_id: props.student_id,
+          video_id: props.video_id,
+        })
+        .update({
+          current_time: props.current_time,
+          status_completed: props.status_completed,
+        })
+    }
+    return result
+  },
+
+  async getStudentVideo(student_id, video_id){
+    const result = await db('student_video').where({student_id, video_id});
+    if(result.length === 0)
+      return {
+        id: 0,
+        student_id,
+        video_id,
+        current_time: 0,
+        status_completed: 0,
+      };
+    return result[0];
   }
 }
