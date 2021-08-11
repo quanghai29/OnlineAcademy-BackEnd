@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const studentService = require('../../services/student.service');
-
+const studentVideoSchema = require('../../schema/student_video.json');
 
 //#region QuangHai
 /**
@@ -141,6 +141,78 @@ router.post('/comment', require('../../middlewares/validate.mdw')(commentSchema)
   }
   return res.status(ret.code).json(ret.message);
 });
+
+
+/**
+ * @openapi
+ *
+ * /student/course/video/update-state:
+ *   post:
+ *     description: get course learning
+ *     tags: [Student]
+ *     parameters:
+ *        - in: header
+ *          name: x-access-token
+ *          schema:
+ *            type: string
+ *            default: mmm
+ *          required: true
+ *     requestBody:
+ *        content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              video_id:
+ *                type: integer
+ *                default: 1
+ *              current_time:
+ *                type: integer
+ *                default: 5
+ *            encoding:
+ *     responses:
+ *       200:
+ *         description: json data if sucess
+ */
+ router.post('/video/update-state', require('../../middlewares/validate.mdw')(studentVideoSchema), async function (req, res) {
+  const student_id = req.accessTokenPayload.userId;
+  const ret = await studentService.updateStudentVideo({...req.body, student_id});
+  res.status(ret.code).end();
+});
+
+
+
+/**
+ * @openapi
+ *
+ * /student/course/video/update-state/{video_id}:
+ *   get:
+ *     description: get state video learning
+ *     tags: [Student]
+ *     parameters:
+ *        - in: header
+ *          name: x-access-token
+ *          schema:
+ *            type: string
+ *            default: mmm
+ *          required: true
+ *        - in: path
+ *          name: video_id
+ *          schema:
+ *            type: integer
+ *            default: 1
+ *          required: true
+ *     responses:
+ *       200:
+ *         description: json data if sucess
+ */
+ router.get('/video/update-state/:video_id', async function (req, res) {
+  const student_id = req.accessTokenPayload.userId;
+  const video_id = req.params.video_id;
+  const ret = await studentService.getStudentVideo(student_id, video_id);
+  res.status(ret.code).json(ret.data);
+});
+
 
 /**
  * @openapi

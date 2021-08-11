@@ -1,0 +1,16 @@
+{
+  "type": "object",
+  "required":[
+    "video_id",
+    "current_time"
+  ],
+  "properties":{
+    "video_id":{
+      "type":"integer"
+    },
+    "current_time":{
+      "type":"number"
+    }
+  },
+  "additionalProperties":true
+}

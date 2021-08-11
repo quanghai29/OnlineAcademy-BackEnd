@@ -106,6 +106,24 @@ async function getCourseRegister(student_id){
     return { code: Code.Bad_Request, message: Message.Bad_Request }
   }
 }
+
+async function updateStudentVideo(props){
+  const result = await studentModel.UpdateStudentVideo(props);
+  if (result) {
+    return { code: Code.Created_Success};
+  } else {
+    return { code: Code.Created_Fail };
+  }
+}
+
+async function getStudentVideo(student_id, video_id){
+  const result = await studentModel.getStudentVideo(student_id, video_id);
+  if (result) {
+    return { code: Code.Success, data: result};
+  } else {
+    return { code: Code.Bad_Request, message: Message.Bad_Request }
+  }
+}
 //#endregion
 
 module.exports = {
@@ -117,5 +135,7 @@ module.exports = {
   updateComment,
   getStudents,
   removeItemById,
-  getCourseRegister
+  getCourseRegister,
+  updateStudentVideo,
+  getStudentVideo,
 }
