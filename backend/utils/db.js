@@ -10,4 +10,5 @@ const knex = require('knex')({
     pool: { min: 0, max: 50 }
 });
 
+
 module.exports = knex;
