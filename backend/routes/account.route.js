@@ -105,8 +105,15 @@ router.post('/resend-code', async (req, res) => {
 
 })
 
+router.post('/forgot-password', async(req, res)=>{
+  const {email} = req.body;
+  const result = await accountService.renewPassword(email);
+  res.status(result.code).json(result);
+})
+
 router.post('/change-password', async (req, res) => {
   const { account_id, old_password, new_password } = req.body;
+  console.log(req.body);
   const ret = await accountService.getAccountById(account_id);
   const old_account = ret.data || null;
   if (old_account === null) {
@@ -165,6 +172,7 @@ router.post('/image', (req, res) => {
 
     //xử lý insert vào db
     const ret = await imageService.insertImage(entityImageCourse);
+    console.log(ret);
     const ret2 = await accountService.updateAccountImage(account_id, ret.data.img_id);
 
     res.status(ret2.code).json({ img_source: img_source });

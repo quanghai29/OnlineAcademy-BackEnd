@@ -89,11 +89,14 @@ module.exports = {
       .select(
         'c.*',
         db.raw('CAST(AVG(sc.vote) AS DECIMAL(10,1)) AS rating'),
-        'ad.fullname as lecturer_name'
+        db.raw('COUNT(sc.id) as total_student'),
+        'ad.fullname as lecturer_name',
+        'i.img_source'
       )
       .from('course as c')
       .leftJoin('student_course as sc', 'sc.course_id', 'c.id')
       .leftJoin('account_detail as ad', 'ad.account_id', 'c.lecturer_id')
+      .leftJoin('image as i', 'i.id', 'c.img_id')
       .groupBy('c.id')
       .orderBy('create_date', 'desc')
       .limit(amount);
@@ -106,14 +109,15 @@ module.exports = {
 
   async getMostViewCourses(amount) {
     const courses = await db.raw(`
-    SELECT c.*, SUM(v.views) AS sum_view, DATE_FORMAT(v.upload_date, '%m/%d/%Y'), CAST(AVG(vote) AS DECIMAL(10,1)) AS rating, ad.fullname as lecturer_name 
+    SELECT c.*, i.img_source, COUNT(sc.id) as total_student ,SUM(v.views) AS sum_view, DATE_FORMAT(v.upload_date, '%m/%d/%Y'), CAST(AVG(vote) AS DECIMAL(10,1)) AS rating, ad.fullname as lecturer_name 
     FROM course AS c 
     LEFT JOIN chapter AS ch ON c.id = ch.course_id 
     LEFT JOIN video AS v ON ch.id = v.chapter_id 
     LEFT JOIN student_course AS sc ON c.id = sc.course_id 
     LEFT JOIN account_detail AS ad ON c.lecturer_id = ad.account_id 
+    LEFT JOIN image AS i ON c.img_id = i.id 
     WHERE v.upload_date BETWEEN NOW() - INTERVAL 30 DAY AND NOW() 
-    GROUP BY ch.course_id 
+    GROUP BY c.id 
     ORDER BY sum_view DESC LIMIT ${amount}
     `);
 

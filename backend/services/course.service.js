@@ -23,7 +23,7 @@ async function getCourseDetail(id) {
     // check isbestSellerCourse
     let isBestseller = false;
     const bestSellerCourse = await courseModel.getBestSellerCourse();
-    if(bestSellerCourse[course.id]){
+    if (bestSellerCourse[course.id]) {
       isBestseller = true;
     }
     course.isBestseller = isBestseller;
@@ -89,8 +89,9 @@ async function getCoursesByLecturerId(lecturer_id) {
   let returnModel = {};
   const ret = await courseModel.getCoursesByLecturerId(lecturer_id);
 
-  if (ret == null) {
+  if (ret === null) {
     returnModel.code = Code.Not_Found;
+    returnModel.data = [];
   } else {
     const courses = ret.map((course) => {
       course.last_update = moment(course.last_update).format('DD/MM/YYYY');
@@ -142,7 +143,7 @@ async function getMostViewCourses(amount) {
 async function getBestSellerCoursesByCategory(catId, amount) {
   let returnModel = {};
   const ret = await courseModel.getBestSellerCourseByCategory(catId, amount);
-  
+
   if (ret === null) {
     returnModel.code = Code.Not_Found;
   } else {
@@ -214,6 +215,19 @@ async function findCourse(text) {
         retData.data.courses = [];
       }
     }
+
+    if (retData.data.courses.length > 0) {
+      // check isbestSellerCourse
+      const bestSellerCourse = await courseModel.getBestSellerCourse();
+      retData.data.courses.forEach(item => {
+        if (bestSellerCourse[item.id]) {
+          item.isBestseller = true;
+        }else{
+          item.isBestseller = false;
+        }
+      })
+    }
+
     retData.code = Code.Success;
     retData.message = Message.Success;
   } else {
@@ -285,9 +299,9 @@ async function deleteById(course_id) {
     imageModel.deleteById(img_id);  //delete img in db
     if (img_source) {
       imgFilePath = `./public/img/${img_source}`;
-      try{
+      try {
         fs.unlinkSync(imgFilePath);//delete img file in server
-      }catch(err){
+      } catch (err) {
         console.log(err);
       }
     }
@@ -306,12 +320,12 @@ async function deleteById(course_id) {
 
       //delete video files in server
       videos.forEach(video => {
-        let videoFilePath='';
+        let videoFilePath = '';
         if (video.video_source) {
           videoFilePath = `./public/videos/${video.video_source}`;
-          try{
+          try {
             fs.unlinkSync(videoFilePath);
-          }catch(err){
+          } catch (err) {
             console.log(err);
           }
         }
@@ -324,7 +338,7 @@ async function deleteById(course_id) {
 
   return retData = {
     code: Code.Deleted_Success,
-    message: Message.Deleted_Success
+    message: Message.Deleted_Success,
   }
 }
 //#endregion

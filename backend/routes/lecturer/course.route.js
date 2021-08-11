@@ -42,8 +42,9 @@ const courseService = require('../../services/course.service');
     if(id === 0) {
         return res.status(204).end();
     }
-    const ret = await courseService.deleteCourseById(id);
-    return res.status(ret.code).json(ret.data);
+
+    const ret = await courseService.deleteById(id);
+    return res.status(ret.code).json({id: id});
  })
  
  //#endregion

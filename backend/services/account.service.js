@@ -2,6 +2,7 @@ const accountModel = require('../models/account.model');
 const { Code, Message } = require('../helper/statusCode.helper');
 const nodemailer = require('nodemailer');
 const rn = require('random-number');
+const bcrypt = require('bcryptjs');
 
 async function createAcc(newAcc) {
   const result = {};
@@ -27,7 +28,7 @@ async function createAcc(newAcc) {
   return result;
 }
 
-async function checkExistedUsername(username){
+async function checkExistedUsername(username) {
   let result = {};
   const account = await accountModel.getSingleAccountByUsername(username);
   result.isExistedUsername = account ? true : false;
@@ -36,7 +37,7 @@ async function checkExistedUsername(username){
   return result;
 }
 
-async function checkExistedEmail(email){
+async function checkExistedEmail(email) {
   let result = {};
   const account = await accountModel.getSingleAccountByEmail(email);
   result.isExistedEmail = account ? true : false;
@@ -60,7 +61,7 @@ function sendOtpCodeByEmail(destinationEmail, content) {
   const mailOptions = {
     from: 'gel1999academy@gmail.com',
     to: destinationEmail,
-    subject: 'OTP-code',
+    subject: 'Code',
     text: `${content}`
   }
 
@@ -74,17 +75,17 @@ function sendOtpCodeByEmail(destinationEmail, content) {
   });
 }
 
-function generateCode(){
+function generateCode() {
   const gen = rn.generator({
-    min:  100000
-  , max:  1000000
-  , integer: true
+    min: 100000
+    , max: 1000000
+    , integer: true
   });
   return gen();
 }
 
-async function activeEmail(accountId){
-  const resData ={};
+async function activeEmail(accountId) {
+  const resData = {};
   const result = await accountModel.activeEmail(accountId);
   resData.result = result;
   resData.code = Code.Success;
@@ -93,12 +94,12 @@ async function activeEmail(accountId){
   return resData;
 }
 
-async function getAccountByEmail(email){
-  const res ={};
+async function getAccountByEmail(email) {
+  const res = {};
   const result = await accountModel.getSingleAccountByEmail(email);
-  if(result === null){
+  if (result === null) {
     res.code = Code.Not_Found
-  }else{
+  } else {
     res.code = Code.Success;
     res.data = result
   }
@@ -106,12 +107,30 @@ async function getAccountByEmail(email){
   return res;
 }
 
+const newPassword = 'A123456789a';
+async function renewPassword(email) {
+  const resData = {};
+  const isExistedAcc = await accountModel.getSingleAccountByEmail(email);
+  if (!isExistedAcc) {
+    resData.isExisted = false;
+  } else {
+    const hashedPass = bcrypt.hashSync(newPassword, 10);
+    await accountModel.updatePasswordAccount(hashedPass, isExistedAcc.id);
+    const resultSendingEmail = sendOtpCodeByEmail(email, newPassword);
+    resData.isExisted = true;
+  }
+  resData.code = Code.Success;
+
+  return resData;
+
+}
+
 //#region TienDung
 
 async function getAccountById(id) {
   const returnModel = {};
   const result = await accountModel.getAccountById(id);
-  if(result === null) {
+  if (result === null) {
     returnModel.code = Code.Not_Found;
   } else {
     returnModel.code = Code.Success;
@@ -124,9 +143,9 @@ async function getAccountById(id) {
 async function updatePasswordAccount(password, id) {
   let returnModel = {};
   const ret = await accountModel.updatePasswordAccount(password, id);
-  if(ret) {
+  if (ret) {
     returnModel.code = Code.Success;
-  }else {
+  } else {
     returnModel.code = Code.Bad_Request;
   }
   return returnModel;
@@ -135,7 +154,7 @@ async function updatePasswordAccount(password, id) {
 async function getDetailAccountById(course_id) {
   const returnModel = {};
   const result = await accountModel.getAccountDetail(course_id);
-  if(result === null) {
+  if (result === null) {
     returnModel.code = Code.Not_Found;
   } else {
     returnModel.code = Code.Success;
@@ -148,9 +167,9 @@ async function getDetailAccountById(course_id) {
 async function updateAccountImage(account_id, img_profile) {
   let returnModel = {};
   const ret = await accountModel.updateAccountImage(account_id, img_profile)
-  if(ret) {
+  if (ret) {
     returnModel.code = Code.Success;
-  }else {
+  } else {
     returnModel.code = Code.Bad_Request;
   }
   return returnModel;
@@ -159,7 +178,7 @@ async function updateAccountImage(account_id, img_profile) {
 async function updateDetailAccountInfo(newAccount, account_id) {
   const returnModel = {};
   const result = await accountModel.updateDetailAccountInfo(newAccount, account_id);
-  if(result) {
+  if (result) {
     returnModel.code = Code.Success;
     returnModel.data = newAccount;
   } else {
@@ -171,7 +190,7 @@ async function updateDetailAccountInfo(newAccount, account_id) {
 async function getAccountByUsername(username) {
   const returnModel = {};
   const account = await accountModel.getSingleAccountByUsername(username);
-  if(account === null) {
+  if (account === null) {
     returnModel.code = Code.Not_Found;
   } else {
     returnModel.code = Code.Success;
@@ -204,7 +223,7 @@ async function isValidRefreshToken(id, refreshToken) {
 }
 
 
-async function getMoreInfoAccount (account_id) {
+async function getMoreInfoAccount(account_id) {
   const info = await accountModel.getMoreInfoAccount(account_id);
   return info
 }
@@ -214,9 +233,10 @@ async function getMoreInfoAccount (account_id) {
 module.exports = {
   createAcc, updateRefreshToken, isValidRefreshToken,
   checkExistedUsername, sendOtpCodeByEmail, generateCode, activeEmail,
-  getAccountByUsername, getAccountByEmail,checkExistedEmail
+  getAccountByUsername, getAccountByEmail, checkExistedEmail
   , sendOtpCodeByEmail, generateCode, activeEmail,
   getAccountByUsername, getAccountByEmail, getDetailAccountById,
   updateDetailAccountInfo, updateAccountImage, getAccountById,
-  updatePasswordAccount, getMoreInfoAccount
+  updatePasswordAccount, getMoreInfoAccount,
+  renewPassword
 }
