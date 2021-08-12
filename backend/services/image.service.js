@@ -1,5 +1,5 @@
 const { Code, Message } = require('../helper/statusCode.helper');
-const imageModel = require('../models/image.models');
+const imageModel = require('../models/image.model');
 
 //#region TienDung
 

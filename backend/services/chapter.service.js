@@ -1,5 +1,7 @@
 const { Code, Message } = require('../helper/statusCode.helper');
 const chapterModel = require('../models/chapter.models');
+const videoModal = require('../models/video.model');
+const fs = require('fs-extra');
 
 //#region TienDung
 
@@ -50,6 +52,27 @@ async function updateVideoById(newVideo, id) {
 
 async function deleteChapterById(id) {
   let returnModel = {};
+
+  const videos = await videoModal.getAllByChapterId(id);
+  if(videos) {
+
+    // delete videos by chapter_id in db
+    await videoModal.deleteVideoByChapterId(id);
+
+    // delete video files in server
+    videos.forEach((video) => {
+      let videoFilePath = '';
+      if (video.video_source) {
+        videoFilePath = `./public/videos/${video.video_source}`;
+        try {
+          fs.unlinkSync(videoFilePath);
+        } catch (err) {
+          console.log(err);
+        }
+      }
+    });
+  }
+
   const ret = await chapterModel.deleteChapterById(id);
   if(ret) {
     returnModel.code = Code.Success;

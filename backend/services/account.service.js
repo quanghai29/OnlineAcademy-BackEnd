@@ -1,8 +1,10 @@
 const accountModel = require('../models/account.model');
+const imageModel = require('../models/image.model');
 const { Code, Message } = require('../helper/statusCode.helper');
 const nodemailer = require('nodemailer');
 const rn = require('random-number');
 const bcrypt = require('bcryptjs');
+const fs = require('fs-extra');
 
 async function createAcc(newAcc) {
   const result = {};
@@ -166,6 +168,25 @@ async function getDetailAccountById(course_id) {
 
 async function updateAccountImage(account_id, img_profile) {
   let returnModel = {};
+
+  // remove old image
+  const account = await accountModel.getAccountDetail(account_id);
+  if (account) {
+    const image = await imageModel.getImageById(account.img_profile);
+    if (image) {
+      // delete account's image
+      await imageModel.deleteById(image.id); // delete img in db
+      if (image.img_source) {
+        imgFilePath = `./public/img/${image.img_source}`;
+        try {
+          fs.unlinkSync(imgFilePath); // delete img file in server
+        } catch (err) {
+          console.log(err);
+        }
+      }
+    }
+  }
+
   const ret = await accountModel.updateAccountImage(account_id, img_profile)
   if (ret) {
     returnModel.code = Code.Success;
