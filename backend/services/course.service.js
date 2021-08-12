@@ -46,6 +46,17 @@ async function getBestSellerCourse() {
   return returnModel;
 }
 
+async function getBestSellerCategoies(){
+  let returnModel = {}; // code; message; data
+  const categories = await courseModel.getBestSellerCategories();
+  if (categories == null) {
+    returnModel.code = Code.Not_Found;
+  } else {
+    returnModel.code = Code.Success;
+    returnModel.data = categories;
+  }
+  return returnModel;
+}
 //#endregion
 
 //#region TienDung
@@ -406,4 +417,5 @@ module.exports = {
   getBestSellerCourse,
   getCoursesForAdmin,
   deleteById,
+  getBestSellerCategoies,
 };

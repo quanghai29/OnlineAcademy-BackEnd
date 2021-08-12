@@ -190,6 +190,23 @@ router.get('/bestseller-category/:category_id', async (req, res) => {
 });
 
 
+
+/**
+ * @openapi
+ *
+ * /course/category-mostbestseller:
+ *   get:
+ *     description: get detail course
+ *     tags: [Course]
+ *     responses:
+ *       200:
+ *         description: json data if sucess
+ */
+ router.get('/category-mostbestseller', async function (req, res) {
+  const ret = await courseService.getBestSellerCategoies();
+  res.status(ret.code).json(ret.data);
+});
+
 /**
  * @openapi
  *

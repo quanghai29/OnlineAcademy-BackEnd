@@ -361,5 +361,30 @@ module.exports = {
 
     return result;
   },
+
+  async getBestSellerCategories(){
+    const categories = await db.raw(`
+    SELECT 
+		  distinct c.id,
+      c.category_name
+	  FROM (
+	   SELECT 
+        sc.course_id,
+        count(sc.id) as num_register_month, 
+        sc.register_date as lastest_register
+      from student_course as sc
+      where sc.register_date BETWEEN NOW() - INTERVAL 7 day AND NOW()
+      group by sc.course_id
+      order by num_register_month desc, sc.register_date desc
+      limit 5
+	  ) as r
+      inner join course on course.id = r.course_id
+      inner join category as c on c.id = course.category_id
+    `)
+
+    if(categories.length === 0)
+        return null
+    return categories[0];
+  }
 };
 
