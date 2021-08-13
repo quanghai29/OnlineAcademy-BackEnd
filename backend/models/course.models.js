@@ -132,6 +132,7 @@ module.exports = {
       SELECT 
         r.*,
         ad.fullname,
+        image.img_source as course_img_source,
         CAST(AVG(sc.vote) AS DECIMAL(10,1)) AS avg_vote,
         count(sc.id) as subscriber
       FROM (
@@ -149,10 +150,12 @@ module.exports = {
           order by num_register_month desc, sc.register_date desc
           limit ${amount}
       ) as r
-      left join online_academy.student_course as sc
+      left join student_course as sc
         on sc.course_id = r.id
-      left join online_academy.account_detail as ad
+      left join account_detail as ad
         on ad.account_id = r.lecturer_id
+      left join image 
+        on image.id = r.img_id
       group by sc.course_id
     `)
 
