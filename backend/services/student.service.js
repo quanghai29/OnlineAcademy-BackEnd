@@ -1,6 +1,7 @@
 const studentModel = require('../models/student.models');
 const { Code, Message } = require('../helper/statusCode.helper');
 const studentModels = require('../models/student.models');
+const courseModel = require('../models/course.models');
 const moment = require('moment');
 
 //#region Mai Linh Đồng
@@ -101,7 +102,17 @@ async function updateComment(comment) {
 async function getCourseRegister(student_id){
   const result = await studentModel.getCourseRegister(student_id);
   if (result) {
-    return { code: Code.Success, data: result};
+    const bestSellerCourse = await courseModel.getBestSellerCourse();
+    const data = result.map(course => {
+      let isBestseller = false;
+      if (bestSellerCourse[course.id]) {
+        isBestseller = true;
+      }
+      course.isBestseller = isBestseller;
+      return course;
+    })
+
+    return { code: Code.Success, data: data};
   } else {
     return { code: Code.Bad_Request, message: Message.Bad_Request }
   }

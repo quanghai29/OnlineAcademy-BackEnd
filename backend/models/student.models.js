@@ -184,7 +184,8 @@ module.exports = {
       .select(
         'course.*',
         db.raw('CAST(AVG(sc1.vote) AS DECIMAL(10,1)) AS avg_vote'),
-        'ad.fullname'
+        'ad.fullname',
+        'image.img_source as course_img_source'
       )
       .count('sc1.id as subscriber')
       .from(
@@ -197,6 +198,7 @@ module.exports = {
       .innerJoin('student_course as sc1', 'sc1.course_id', 'r.course_id')
       .leftJoin('course', 'course.id', 'r.course_id')
       .leftJoin('account_detail as ad','ad.account_id', 'course.lecturer_id')
+      .leftJoin('image', 'image.id', 'course.img_id')
       .groupBy('r.course_id')
   },
 

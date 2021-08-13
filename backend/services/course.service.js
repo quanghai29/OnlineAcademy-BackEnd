@@ -201,8 +201,17 @@ async function getBestSellerCoursesByCategory(catId, amount) {
   if (ret === null) {
     returnModel.code = Code.Not_Found;
   } else {
+    const bestSellerCourse = await courseModel.getBestSellerCourse();
+    const data = ret.map(course => {
+      let isBestseller = false;
+      if (bestSellerCourse[course.id]) {
+        isBestseller = true;
+      }
+      course.isBestseller = isBestseller;
+      return course;
+    })
     returnModel.code = Code.Success;
-    returnModel.data = ret;
+    returnModel.data = data;
   }
   return returnModel;
 }
@@ -218,11 +227,19 @@ async function getCourseByCategory(category_id) {
     returnModel.code = Code.Bad_Request;
     returnModel.message = Message.Bad_Request;
   } else {
+    const bestSellerCourse = await courseModel.getBestSellerCourse();
+    const data = courses.map(course => {
+      let isBestseller = false;
+      if (bestSellerCourse[course.id]) {
+        isBestseller = true;
+      }
+      course.isBestseller = isBestseller;
+      return course;
+    })
+    returnModel.data = data;
     returnModel.code = Code.Success;
-    returnModel.message = Message.Success;
   }
-  returnModel.data = courses;
-
+  
   return returnModel;
 }
 
