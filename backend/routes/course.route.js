@@ -1,5 +1,7 @@
 const router = require('express').Router();
 const courseService = require('../services/course.service');
+const studentService = require('../services/student.service');
+const jwt = require('jsonwebtoken');
 
 //#region Mai Linh Đồng
 
@@ -26,7 +28,7 @@ const courseService = require('../services/course.service');
 router.get('/', async (req, res) => {
   const category_id = +req.query.category_id || 0;
   const ret = await courseService.getCourseByCategory(category_id);
-  res.status(ret.code).json(ret);
+  res.status(ret.code).json(ret.data);
 });
 
 /**
@@ -67,9 +69,9 @@ router.post('/search', async (req, res) => {
  *          200:
  *              description: json data
  */
-router.post('/outstanding', async (req, res)=>{
-    const ret = await courseService.getOutstandingCourses();
-    res.status(ret.code).json(ret);
+router.post('/outstanding', async (req, res) => {
+  const ret = await courseService.getOutstandingCourses();
+  res.status(ret.code).json(ret);
 })
 
 // ================= get coments of a course =============
@@ -81,54 +83,22 @@ router.post('/outstanding', async (req, res)=>{
  *    tags: [Course]
  *    parameters:
  *        - in: path
- *          name: id (course_id)
+ *          name: id
  *          required: true
  *          schema:
  *             type: integer
+ *             minimum: 1
+ *             default: 1
  * 
  *    responses:
  *       200: 
  *          description: json data
  */
-router.get('/comments/:id', async function(req, res){
-  const id = +req.params.id || 0;
-  const ret = await courseService.getCommentsOfCourse(id);
-  
-  res.status(ret.code).json(ret);
-})
+router.get('/comments/:id', async function (req, res) {
+  const course_id = +req.params.id || 0;
+  const ret = await courseService.getCommentsOfCourse(course_id);
 
-/**
- * @openapi
- * 
- * /course/comment:
- *  post:
- *    description: insert a course's comment
- *    tags: [Course]
- *    requestBody:
- *      required: true
- *      content:
- *          application/json:
- *              schema:
- *                  {}
- *                 
- *              example:
- *                  {content: 'content of comment',
- *                   student_id: 1,
- *                    course_id: 1
- *                  }
- *    responses:
- *      201:
- *        description: Create comment successfully
- *      401: 
- *        description: Create comment unsuccessfully
- */
-const commentSchema = require('../schema/comment.json');
-router.post('/comment', require('../middlewares/validate.mdw')(commentSchema) 
-,async function(req,res){
-  const comment = req.body;
-  const result = await courseService.addComment(comment);
-
-  res.status(result.code).json(result);
+  res.status(ret.code).json(ret.data);
 })
 
 //#endregion
@@ -162,7 +132,6 @@ router.get('/10-latest', async (req, res) => {
  *      description: get 10 latest courses
  *      tags: [Course]
  *      parameters:
- *
  *      responses:
  *          200:
  *              description: json data
@@ -176,25 +145,67 @@ router.get('/10-mostview', async (req, res) => {
 /**
  * @openapi
  *
- * /course/5-bestseller:
+ * /course/bestseller-category/{category_id}:
  *  get:
  *      description: get 5 best seller by category
  *      tags: [Course]
  *      parameters:
- *
+ *       - in: path
+ *         name: category_id   # Note the name is the same as in the path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
  *      responses:
  *          200:
  *              description: json data
  */
 
-router.get('/5-bestseller', async (req, res) => {
-  const ret = await courseService.getBestSellerCoursesByCategory(1, 10);
+router.get('/bestseller-category/:category_id', async (req, res) => {
+  const category_id = req.params.category_id;
+  const ret = await courseService.getBestSellerCoursesByCategory(category_id, 5);
   res.status(ret.code).json(ret.data);
 });
 
 //#endregion
 
 //#region QuangHai
+
+
+/**
+ * @openapi
+ *
+ * /course/mostbestseller:
+ *   get:
+ *     description: get detail course
+ *     tags: [Course]
+ *     responses:
+ *       200:
+ *         description: json data if sucess
+ */
+ router.get('/mostbestseller', async function (req, res) {
+  const ret = await courseService.getBestSellerCourse();
+  res.status(ret.code).json(ret.data);
+});
+
+
+
+/**
+ * @openapi
+ *
+ * /course/category-mostbestseller:
+ *   get:
+ *     description: get detail course
+ *     tags: [Course]
+ *     responses:
+ *       200:
+ *         description: json data if sucess
+ */
+ router.get('/category-mostbestseller', async function (req, res) {
+  const ret = await courseService.getBestSellerCategoies();
+  res.status(ret.code).json(ret.data);
+});
 
 /**
  * @openapi
@@ -204,6 +215,10 @@ router.get('/5-bestseller', async (req, res) => {
  *     description: get detail course
  *     tags: [Course]
  *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         schema:
+ *            type: string
  *       - in: path
  *         name: id   # Note the name is the same as in the path
  *         required: true
@@ -216,8 +231,26 @@ router.get('/5-bestseller', async (req, res) => {
  *         description: json data if sucess
  */
 router.get('/:id', async function (req, res) {
-  const id = req.params.id || 0;
-  const ret = await courseService.getCourseDetail(id);
+  const course_id = req.params.id || 0;
+  const ret = await courseService.getCourseDetail(course_id);
+
+  const accessToken = req.headers['x-access-token'];
+  if(!accessToken){
+      return res.status(ret.code).json(ret.data).end();
+  }
+  try {
+    const decoded = jwt.verify(accessToken, process.env.JWT_TOKEN);
+    const student_id = decoded.userId;
+    const student_course = await studentService.getHandleStudentCourse(student_id, course_id);
+
+    if (student_course) {
+      ret.data = { ...ret.data, ...student_course }
+    }
+  } catch (error) {
+    if(accessToken){
+      console.log(error);
+    }
+  }
   res.status(ret.code).json(ret.data);
 });
 

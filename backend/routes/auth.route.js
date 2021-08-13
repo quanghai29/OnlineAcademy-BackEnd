@@ -11,23 +11,64 @@ const rfTokenSchema = require('../schema/rfToken.json');
 
 const router = express.Router();
 
+
+
+/**
+ * @openapi
+ *
+ * /auth:
+ *   post:
+ *     description: Login
+ *     tags: [Auth]
+ *     requestBody:
+ *      content:
+ *       application/json:
+ *         schema:
+ *           type: object
+ *           properties:
+ *              username:
+ *                type: string
+ *                default: 'haimtp'
+ *              password:
+ *                type: string
+ *                default: 'Daihoc12345'
+ *           encoding:
+ *     responses:
+ *       200:
+ *         description: json data if sucess
+ */
 router.post('/', validate(loginSchema), async function (req, res) {
   const ret = await accountService.getAccountByUsername(req.body.username);
-  const account = ret.data;
+  const account = ret.data || null;
   if (account === null) {
     return res.json({
-      authenticated: false
+      authenticated: false,
+      shouldConfirmEmail:false
     });
   }
 
   if (!bcrypt.compareSync(req.body.password, account.password)) {
     return res.json({
-      authenticated: false
+      authenticated: false,
+      shouldConfirmEmail: false
     });
   }
 
+  if(!account.confirm_email){
+    return res.json({
+      authenticated: false,
+      shouldConfirmEmail: true,
+      email: account.email
+    })
+  }
+
+  const moreInfo = await accountService.getMoreInfoAccount(account.id);
+
   const accessToken = jwt.sign({
-    userId: account.id
+    userId: account.id,
+    role: account.account_role,
+    isAuth: true,
+    ...moreInfo
   }, process.env.JWT_TOKEN, {
     expiresIn: process.env.JWT_EXPIRES_IN // seconds (1 day)
   });
@@ -35,10 +76,14 @@ router.post('/', validate(loginSchema), async function (req, res) {
   const refreshToken = randomstring.generate();
   await accountService.updateRefreshToken(account.id, refreshToken);
 
+  
   res.json({
     authenticated: true,
     accessToken,
-    refreshToken
+    refreshToken,
+    username:account.username,
+    email: account.email,
+    shouldConfirmEmail: false,
   })
 })
 

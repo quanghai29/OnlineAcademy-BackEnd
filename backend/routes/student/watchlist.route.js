@@ -5,18 +5,32 @@ const watchlistService = require('../../services/watchllist.service');
 /**
  * @openapi
  *
- * /student/watchlist:
+ * /student/watchlist/{courseId}:
  *   post:
  *     description: add watchlist
  *     tags: [Student]
+ *     parameters:
+ *        - in: header
+ *          name: x-access-token
+ *          schema:
+ *            type: string
+ *            default: mmm
+ *          required: true
+ *        - in: path
+ *          name: courseId
+ *          schema:
+ *            type: integer
+ *            default: 1
+ *          required: true
  *     responses:
  *       200:
  *         description: list course favorite of student
  */
  router.post('/', async (req, res)=>{
-  // const student_id = req.accessTokenPayload.student_id;
-  const student_id = req.headers['student_id'];//test
+  const student_id = req.accessTokenPayload.userId;
   const course_id = req.body.course_id;
+  if(course_id === undefined)
+    return res.status(400).end(); 
   const result = await watchlistService.addWatchlist({student_id, course_id});
 
   res.status(result.code).json(result.message);
@@ -25,26 +39,55 @@ const watchlistService = require('../../services/watchllist.service');
 /**
  * @openapi
  *
- * /student/watchlist/{id}:
- *   delete:
- *     description: add watchlist
+ * /student/watchlist:
+ *   get:
+ *     description: get watchlist
  *     tags: [Student]
  *     parameters:
- *       - in: path
- *         name: id   # Note the name is the same as in the path
- *         required: true
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
+ *        - in: header
+ *          name: x-access-token
+ *          schema:
+ *            type: string
+ *            default: mmm
+ *          required: true
  *     responses:
  *       200:
  *         description: list course favorite of student
  */
- router.delete('/:id', async (req, res)=>{
-  const id = req.params.id;
-  console.log(id);
-  const result = await watchlistService.deleteWatchlist(id);
+ router.get('/', async (req, res)=>{
+  const student_id = req.accessTokenPayload.userId;
+  const result = await watchlistService.getWatchlist(student_id);
+  res.status(result.code).json(result.data);
+})
+
+/**
+ * @openapi
+ *
+ * /student/watchlist/{courseId}:
+ *   delete:
+ *     description: delete watchlist
+ *     tags: [Student]
+ *     parameters:
+ *        - in: header
+ *          name: x-access-token
+ *          schema:
+ *            type: string
+ *            default: mmm
+ *          required: true
+ *        - in: path
+ *          name: courseId
+ *          schema:
+ *            type: integer
+ *            default: 1
+ *          required: true
+ *     responses:
+ *       200:
+ *         description: list course favorite of student
+ */
+ router.delete('/:courseId', async (req, res)=>{
+  const student_id = req.accessTokenPayload.userId;
+  const course_id = req.params.courseId;
+  const result = await watchlistService.deleteWatchlist(student_id,course_id);
   res.status(result.code).json(result.message);
 })
 // #endregion

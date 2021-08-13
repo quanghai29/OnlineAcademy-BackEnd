@@ -11,7 +11,7 @@ async function getAllCategory() {
     returnModel.code = Code.Not_Found;
   } else {
     categories.forEach(category => {
-      category.last_update = moment(category.last_update).format('DD/MM/YYYY HH:mm:ss');
+      category.last_update = moment(category.last_update).format('DD/MM/YYYY');
     });
     returnModel.code = Code.Success;
     returnModel.data = categories;
@@ -41,12 +41,84 @@ async function findCategory(text) {
     retData.data = result ? result : [];
     retData.code = Code.Success;
     retData.message = Message.Success;
-  }else{
+  } else {
     retData.code = Code.Bad_Request;
     retData.message = Message.Bad_Request;
   }
 
   return retData;
+}
+
+async function getExpandedInfo() {
+  let returnModel = {}; // code; message; data
+  const categories = await categoryModel.getExpandedInfo();
+
+  if(!categories)
+    return {code: Code.Forbidden, message: Message.Forbidden}
+    
+  categories.forEach(category => {
+    category.last_update = moment(category.last_update).format('DD/MM/YYYY');
+    delete category.course_id;
+  });
+
+  returnModel.code = Code.Success;
+  returnModel.categories = categories;
+  return returnModel;
+}
+
+async function editCategoryItem(data) {
+  let resData = {};
+
+  const existedItem = await categoryModel.singleByName(data.category_name);
+  if (existedItem) {
+    resData.code = Code.Success;
+    resData.existedItem = true;
+  } else {
+    const result = await categoryModel.editCategoryItem(data);
+    if (result.changedRows === 1) {
+      resData.code = Code.Success;
+      resData.message = Message.Success;
+      resData.existedItem = false;
+    }else{
+
+    }
+  }
+  return resData;
+}
+
+async function createCategoryItem(data) {
+  let resData = {};
+  const existedItem = await categoryModel.singleByName(data.category_name);
+  if (existedItem) {
+    resData.code = Code.Success;
+    resData.existedItem = true;
+  } else {
+    const result = await categoryModel.add(data);
+    if (result.length > 0) {
+      resData.code = Code.Created_Success;
+      resData.message = Message.Created_Success;
+      resData.existedItem = false;
+    } else {
+
+    }
+  }
+
+  return resData;
+}
+
+async function removeItemById(id) {
+  let resData = {};
+  const result = await categoryModel.removeItemById(id);
+
+  if (result === 1) {
+    resData.code = Code.Deleted_Success;
+    resData.message = Message.Deleted_Success;
+  } else {
+    resData.code = Code.Deleted_Fail;
+    resData.message = Message.Deleted_Fail;
+  }
+
+  return resData;
 }
 //#endregion
 
@@ -54,5 +126,9 @@ async function findCategory(text) {
 module.exports = {
   getAllCategory,
   getMostRegister,
-  findCategory
+  findCategory,
+  getExpandedInfo,
+  editCategoryItem,
+  createCategoryItem,
+  removeItemById
 };

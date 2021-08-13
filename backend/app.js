@@ -19,6 +19,9 @@ require('./middlewares/error.mdw')(app);
 
 require('./chatbot');
 
+
+
+
 const { PORT } = process.env;
 app.listen(PORT, () => {
   console.log(`Online Academy backend is runing at ${process.env.HOST_NAME}:${process.env.PORT}`);

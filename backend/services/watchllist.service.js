@@ -1,5 +1,6 @@
 const studentModel = require('../models/watchlist.model');
 const { Code, Message } = require('../helper/statusCode.helper');
+const courseModel = require('../models/course.models');
 
 //#region QuangHai
 async function addWatchlist ({student_id,course_id}) {
@@ -15,16 +16,34 @@ async function addWatchlist ({student_id,course_id}) {
   return retData;
 }
 
-async function deleteWatchlist (watchlist_id) {
-  const res = await studentModel.delete(watchlist_id);
+async function deleteWatchlist (student_id,course_id) {
+  const res = await studentModel.delete(student_id,course_id);
   if(res){
     return {code: Code.Deleted_Success, message: Message.Deleted_Success};
   }
   return {code: Code.Deleted_Fail, message: Message.Deleted_Fail};
 }
+
+async function getWatchlist(student_id){
+  const res = await studentModel.getWatchlist(student_id);
+  if(res){
+    const bestSellerCourse = await courseModel.getBestSellerCourse();
+    const data = res.map(course => {
+      let isBestseller = false;
+      if (bestSellerCourse[course.id]) {
+        isBestseller = true;
+      }
+      course.isBestseller = isBestseller;
+      return course;
+    })
+    return {code: Code.Success, data: data};
+  }
+  return {code: Code.Forbidden, message: Message.Forbidden};
+}
 //#endregion
 
 module.exports = {
   addWatchlist,
-  deleteWatchlist
+  deleteWatchlist,
+  getWatchlist,
 }
