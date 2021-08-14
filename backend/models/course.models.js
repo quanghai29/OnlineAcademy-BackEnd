@@ -167,7 +167,8 @@ module.exports = {
 
   async outstandingCourses() {
     const courses = await db.raw(
-      `SELECT course.id, course.title, course.lecturer_id, course.img_id,
+      `SELECT course.id, course.title, course.price, course.discount,
+       course.lecturer_id, course.img_id,
       rating,total_student,sum_vote_weekly,image.img_source,
        account_detail.fullname AS lecturer_name
       FROM  course
