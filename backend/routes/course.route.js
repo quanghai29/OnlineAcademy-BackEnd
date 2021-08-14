@@ -69,7 +69,7 @@ router.post('/search', async (req, res) => {
  *          200:
  *              description: json data
  */
-router.post('/outstanding', async (req, res) => {
+router.get('/outstanding', async (req, res) => {
   const ret = await courseService.getOutstandingCourses();
   res.status(ret.code).json(ret);
 })
