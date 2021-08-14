@@ -159,31 +159,30 @@ module.exports = {
       group by sc.course_id
     `)
 
-    if(courses.length === 0)
-        return null
+    if (courses.length === 0)
+      return null
     return courses[0];
     //return db.raw(`call getBestsellerOfCategory(1,5)`);
   },
 
   async outstandingCourses() {
-    const courses = await db('course')
-      .rightJoin(
-        function () {
-          this.select('course_id')
-            .sum({ sum_vote: 'vote' })
-            .from('student_course')
-            .whereRaw('datediff(curdate(), register_date) <= 7')
-            .groupBy('course_id')
-            .orderBy('sum_vote', 'desc')
-            .as('sum_vote');
-        },
-        'course.id',
-        '=',
-        'sum_vote.course_id'
-      )
-      .limit(4);
-
-    return courses;
+    const courses = await db.raw(
+      `SELECT course.id, course.title, course.lecturer_id, course.img_id,
+      rating, total_student, image.img_source, account_detail.fullname AS lecturer_name
+      FROM course
+      RIGHT JOIN 
+      (SELECT course_id, AVG(vote) AS rating, COUNT(course_id) AS total_student
+       FROM student_course WHERE datediff(curdate(), register_date) <= 7
+       GROUP BY(course_id)
+       ORDER BY (rating)
+       DESC
+      ) AS temp
+       ON course.id = temp.course_id
+       LEFT JOIN account_detail ON account_detail.account_id = lecturer_id
+       LEFT JOIN image ON img_id = image.id
+       LIMIT 4;`
+    )
+    return courses[0];
   },
 
   async getComments(course_id) {
@@ -335,37 +334,37 @@ module.exports = {
       `
     )
 
-    if(courses === null)
+    if (courses === null)
       return null
-    
+
     const result = courses[0].reduce((obj, item) => {
       return {
         ...obj,
         [item['course_id']]: item,
       };
     }, {});
-    return result ;
+    return result;
 
   },
-  async getCoursesForAdmin(){
-    const courses = await db.select('course.id as course_id', 'course.category_id', 
-    'course.title', 'course.create_date', 'course.last_update', 'course.short_description',
-    'course.course_status','account_detail.fullname as creator', 'image.img_title', 
-    'image.img_source')
-    .from('course').leftJoin('account_detail', 'course.lecturer_id', 'account_detail.account_id')
-    .leftJoin('image', 'image.id', 'course.img_id');
+  async getCoursesForAdmin() {
+    const courses = await db.select('course.id as course_id', 'course.category_id',
+      'course.title', 'course.create_date', 'course.last_update', 'course.short_description',
+      'course.course_status', 'account_detail.fullname as creator', 'image.img_title',
+      'image.img_source')
+      .from('course').leftJoin('account_detail', 'course.lecturer_id', 'account_detail.account_id')
+      .leftJoin('image', 'image.id', 'course.img_id');
 
     return courses.length ? courses : null;
   },
 
-  async deleteById(id){
+  async deleteById(id) {
     const result = await db(table_name)
-    .where('id', id).del();
+      .where('id', id).del();
 
     return result;
   },
 
-  async getBestSellerCategories(){
+  async getBestSellerCategories() {
     const categories = await db.raw(`
     SELECT 
 		  distinct c.id,
@@ -385,8 +384,8 @@ module.exports = {
       inner join category as c on c.id = course.category_id
     `)
 
-    if(categories.length === 0)
-        return null
+    if (categories.length === 0)
+      return null
     return categories[0];
   }
 };
