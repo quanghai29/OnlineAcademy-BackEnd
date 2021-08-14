@@ -168,16 +168,22 @@ module.exports = {
   async outstandingCourses() {
     const courses = await db.raw(
       `SELECT course.id, course.title, course.lecturer_id, course.img_id,
-      rating, total_student, image.img_source, account_detail.fullname AS lecturer_name
-      FROM course
+      rating,total_student,sum_vote_weekly,image.img_source,
+       account_detail.fullname AS lecturer_name
+      FROM  course
       RIGHT JOIN 
-      (SELECT course_id, AVG(vote) AS rating, COUNT(course_id) AS total_student
-       FROM student_course WHERE datediff(curdate(), register_date) <= 7
+      (SELECT course_id, SUM(vote) AS sum_vote_weekly
+       FROM student_course WHERE datediff(curdate(), vote_time) <= 7
        GROUP BY(course_id)
-       ORDER BY (rating)
+       ORDER BY(sum_vote_weekly)
        DESC
-      ) AS temp
-       ON course.id = temp.course_id
+      ) AS temp ON course.id = temp.course_id
+       LEFT JOIN (
+        SELECT course_id, avg(vote) AS rating, 
+          COUNT(course_id) AS total_student
+        FROM student_course
+        GROUP BY(course_id)
+       ) AS temp_2 ON course.id = temp_2.course_id
        LEFT JOIN account_detail ON account_detail.account_id = lecturer_id
        LEFT JOIN image ON img_id = image.id
        LIMIT 4;`

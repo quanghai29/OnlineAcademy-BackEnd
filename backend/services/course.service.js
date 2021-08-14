@@ -320,6 +320,7 @@ async function getOutstandingCourses() {
     courses.forEach(course=>{
       course.rating = +course.rating;
       course.total_student = +course.total_student;
+      course.sum_vote_weekly = + course.sum_vote_weekly;
     })
   }
   retData.data = courses;
