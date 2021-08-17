@@ -57,6 +57,15 @@ async function getBestSellerCategoies(){
   }
   return returnModel;
 }
+
+async function addViewsCourse(course_id){
+  const result = await courseModel.addViewsCourse(course_id);
+  if (result) {
+    return { code: Code.Created_Success};
+  } else {
+    return { code: Code.Created_Fail};
+  }
+}
 //#endregion
 
 //#region TienDung
@@ -316,6 +325,21 @@ async function getOutstandingCourses() {
   const courses = await courseModel.outstandingCourses();
   retData.code = Code.Success;
   retData.message = Message.Success;
+
+  // check isbestSellerCourse
+  const bestSellerCourse = await courseModel.getBestSellerCourse();
+  if(courses.length>0){
+    courses.forEach(course=>{
+      course.rating = +course.rating;
+      course.total_student = +course.total_student;
+      course.sum_vote_weekly = + course.sum_vote_weekly;
+      if (bestSellerCourse[course.id]) {
+        course.isBestseller = true;
+      }else{
+        course.isBestseller = false;
+      }
+    })
+  }
   retData.data = courses;
 
   return retData;
@@ -435,4 +459,5 @@ module.exports = {
   getCoursesForAdmin,
   deleteById,
   getBestSellerCategoies,
+  addViewsCourse,
 };

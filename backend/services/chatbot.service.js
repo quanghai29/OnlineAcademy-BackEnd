@@ -2,6 +2,7 @@
 const courseService = require('./course.service');
 const categoryService = require('./category.service');
 const { type } = require('../helper/type.chatbot.helper');
+const currency = require('currency.js');
 
 function startBot() {
   return {
@@ -36,21 +37,22 @@ async function getCourseDetail(id = 1) {
     //
     let msg_chapters = ``;
     course.chapters.forEach(chapter => {
-      msg_chapters += `\t# ${chapter.title}\n`;
+      msg_chapters += `\t# ${chapter.chapter_title}  (${chapter.sum_video_chapter} bài)\n`;
     })
+
+    const price = currency(course.price, { separator: ',', symbol: '', precision: 0 }).format();
 
     //
     const msg = `8-) B-) 8-) ${course.title}\n`
-      + `^_^ Học phí: ${course.price} VND\n`
-      + `:O Khuyến mãi: ${course.discount}%  \n`
+      + `^_^ Học phí gốc: ${price} VND\n`
+      + `:O Khuyến mãi: ${course.discount} %  \n`
       + `<(") Mô tả sơ lược: ${course.short_description}\n`
       + `(^^^) Thông tin giảng viên: \n`
       + `\t :) Họ tên: ${course.lecturer_name}\n`
-      + `\t ;) Kinh nghiệm: ${course.lecturer_experience_year} year\n`
-      + `\t ^_^ Ngôn ngữ: ${course.lecturer_programing_language}\n`
-      + `(y) Đánh giá: 5 sao\n`
-      + `O:) Rating: 54,1445\n`
-      + `:* Số học viên đăng ký: 497,213 \n`
+      + `\t ^_^ Sơ lược: ${course.lecturer_headline}\n`
+      + `(y) Đánh giá:  ${course.num_rating} \n`
+      + `O:) Số lượt đánh giá:  ${course.num_feedback}\n`
+      + `:* Số học viên đăng ký:  ${course.num_register} \n`
       + `<(") Last updated: ${course.last_update}\n`
       + `:|] Đề cương khóa học \n`
       + msg_chapters
@@ -108,12 +110,13 @@ async function getCourseByCategory(category_id) {
   const res = await courseService.getCourseByCategory(category_id);
   if (res.data) {
     let elements = [];
-
+    
     res.data.forEach(course => {
+      const price = currency(course.price, { separator: ',', symbol: '', precision: 0 }).format();
       const object = {
         'title': course.title,
-        'subtitle': course.price + ' VND',
-        'image_url': process.env.URL + '/common/media/image/?path=' + course.img_source,
+        'subtitle': `${price} VND, ${course.discount} %`,
+        'image_url': process.env.URL + '/common/media/image/' + course.course_img_source,
         'buttons': [{
           'type': 'postback',
           'title': 'Chi tiết',
@@ -144,14 +147,15 @@ async function searchCourse(msg){
   if(msg.match(regex)){
     const res = await courseService.findCourse(msg.substr(7));
 
-    if(res.data && res.data.length > 0){
+    if(res.data && res.data.courses.length > 0){
       let elements = [];
 
-      res.data.forEach(course => {
+      res.data.courses.forEach(course => {
+        const price = currency(course.price, { separator: ',', symbol: '', precision: 0 }).format();
         const object = {
           'title': course.title,
-          'subtitle': course.price + ' VND',
-          'image_url': process.env.URL + '/common/media/image/?path=' + course.img_source,
+          'subtitle': `${price} VND, ${course.discount}%`,
+          'image_url': process.env.URL + '/common/media/image/' + course.image.img_source,
           'buttons': [{
             'type': 'postback',
             'title': 'Chi tiết',

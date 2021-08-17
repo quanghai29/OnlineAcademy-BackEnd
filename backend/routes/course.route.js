@@ -69,7 +69,7 @@ router.post('/search', async (req, res) => {
  *          200:
  *              description: json data
  */
-router.post('/outstanding', async (req, res) => {
+router.get('/outstanding', async (req, res) => {
   const ret = await courseService.getOutstandingCourses();
   res.status(ret.code).json(ret);
 })
@@ -206,6 +206,39 @@ router.get('/bestseller-category/:category_id', async (req, res) => {
   const ret = await courseService.getBestSellerCategoies();
   res.status(ret.code).json(ret.data);
 });
+
+
+/**
+ * @openapi
+ *
+ * /course/watch-course:
+ *   post:
+ *     description: get course learning
+ *     tags: [Course]
+ *     requestBody:
+ *        content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              video_id:
+ *                type: integer
+ *                default: 1
+ *            encoding:
+ *     responses:
+ *       200:
+ *         description: json data if sucess
+ */
+ router.post('/watch-course', async function (req, res) {
+  const course_id = req.body.course_id;
+
+  if(course_id === null){
+    return res.status(400).end();
+  }
+  const ret = await courseService.addViewsCourse(course_id);
+  res.status(ret.code).end();
+});
+
 
 /**
  * @openapi
