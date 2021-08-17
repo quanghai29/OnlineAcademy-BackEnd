@@ -74,8 +74,9 @@ module.exports = {
     const sql = `
     SELECT *, MATCH (title, short_description, full_description) 
     AGAINST ('${text}') as score
-    FROM course WHERE MATCH (title, short_description, full_description) 
-    AGAINST ('${text}') > 0 ORDER BY score DESC;
+    FROM course WHERE MATCH (title, short_description, full_description) AGAINST ('${text}') > 0
+    AND enable_status = 1
+    ORDER BY score DESC;
     `;
     const courses = await db.raw(sql);
 
@@ -185,11 +186,12 @@ module.exports = {
        LEFT JOIN (
         SELECT course_id, avg(vote) AS rating, 
           COUNT(course_id) AS total_student
-        FROM student_course
+        FROM student_course 
         GROUP BY(course_id)
        ) AS temp_2 ON course.id = temp_2.course_id
        LEFT JOIN account_detail ON account_detail.account_id = lecturer_id
        LEFT JOIN image ON img_id = image.id
+       WHERE course.enable_status = 1
        LIMIT 4;`
     )
     return courses[0];
