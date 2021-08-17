@@ -54,7 +54,10 @@ module.exports = {
       )
       .count('sc.id as subscriber')
       .from('course')
-      .where('course.category_id', category_id)
+      .where({
+        'course.category_id': category_id,
+        'course.enable_status': 1
+      })
       .leftJoin('image', 'image.id', 'course.img_id')
       .leftJoin('student_course as sc', 'sc.course_id', 'course.id')
       .leftJoin('account_detail as ad', 'ad.account_id', 'course.lecturer_id')
@@ -96,6 +99,7 @@ module.exports = {
       .leftJoin('student_course as sc', 'sc.course_id', 'c.id')
       .leftJoin('account_detail as ad', 'ad.account_id', 'c.lecturer_id')
       .leftJoin('image as i', 'i.id', 'c.img_id')
+      .where('c.enable_status', 1)
       .groupBy('c.id')
       .orderBy('create_date', 'desc')
       .limit(amount);
@@ -108,16 +112,14 @@ module.exports = {
 
   async getMostViewCourses(amount) {
     const courses = await db.raw(`
-    SELECT c.*, i.img_source, COUNT(sc.id) as total_student ,SUM(v.views) AS sum_view, DATE_FORMAT(v.upload_date, '%m/%d/%Y'), CAST(AVG(vote) AS DECIMAL(10,1)) AS rating, ad.fullname as lecturer_name 
+    SELECT c.*, DATE_FORMAT(c.last_update, '%m/%d/%Y'), i.img_source, COUNT(sc.id) as total_student, CAST(AVG(sc.vote) AS DECIMAL(10,1)) AS rating, ad.fullname as lecturer_name
     FROM course AS c 
-    LEFT JOIN chapter AS ch ON c.id = ch.course_id 
-    LEFT JOIN video AS v ON ch.id = v.chapter_id 
     LEFT JOIN student_course AS sc ON c.id = sc.course_id 
     LEFT JOIN account_detail AS ad ON c.lecturer_id = ad.account_id 
     LEFT JOIN image AS i ON c.img_id = i.id 
-    WHERE v.upload_date BETWEEN NOW() - INTERVAL 30 DAY AND NOW() 
+    WHERE (c.last_update BETWEEN NOW() - INTERVAL 30 DAY AND NOW() ) AND c.enable_status=1
     GROUP BY c.id 
-    ORDER BY sum_view DESC LIMIT ${amount}
+    ORDER BY c.views DESC LIMIT ${amount}
     `);
 
     if (courses.length === 0) {
@@ -146,9 +148,10 @@ module.exports = {
         where 1 = 1
           and c.category_id = ${catId}
           and sc.register_date BETWEEN NOW() - INTERVAL 1 month AND NOW()
-          group by sc.course_id
-          order by num_register_month desc, sc.register_date desc
-          limit ${amount}
+          and c.enable_status = 1
+        group by sc.course_id
+        order by num_register_month desc, sc.register_date desc
+        limit ${amount}
       ) as r
       left join student_course as sc
         on sc.course_id = r.id
@@ -239,14 +242,17 @@ module.exports = {
       .count('sc.id as num_register')
       .count('sc.vote as num_feedback')
       .from('course')
-      .where('course.id', course_id)
+      .where({
+        'course.id': course_id,
+        'course.enable_status': true
+      })
       .leftJoin('account_detail', 'account_detail.account_id', 'course.lecturer_id')
       .leftJoin('image', 'image.id', 'course.img_id')
       .leftJoin('student_course as sc', 'sc.course_id', 'course.id')
       .leftJoin('category', 'category.id', 'course.category_id')
       ;
 
-    if (courses.length > 0) {
+    if (courses.length > 0 && courses[0].id !== null) {
       let course = courses[0];
 
       //get all chapter
@@ -334,7 +340,10 @@ module.exports = {
         count(sc.id) as num_register_month, 
         sc.register_date as lastest_register
       from student_course as sc
-      where sc.register_date BETWEEN NOW() - INTERVAL 7 day AND NOW()
+      inner join course on course.id = sc.course_id
+      where 1=1
+			      and course.enable_status = true
+            and sc.register_date BETWEEN NOW() - INTERVAL 7 day AND NOW()
       group by sc.course_id
       order by num_register_month desc, sc.register_date desc
       limit 5
@@ -394,6 +403,12 @@ module.exports = {
     if (categories.length === 0)
       return null
     return categories[0];
+  },
+
+  addViewsCourse(course_id){
+    return db('course')
+      .where({id: course_id})
+      .increment('views', 1)
   }
 };
 

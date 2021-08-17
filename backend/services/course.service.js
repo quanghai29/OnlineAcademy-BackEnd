@@ -57,6 +57,15 @@ async function getBestSellerCategoies(){
   }
   return returnModel;
 }
+
+async function addViewsCourse(course_id){
+  const result = await courseModel.addViewsCourse(course_id);
+  if (result) {
+    return { code: Code.Created_Success};
+  } else {
+    return { code: Code.Created_Fail};
+  }
+}
 //#endregion
 
 //#region TienDung
@@ -450,4 +459,5 @@ module.exports = {
   getCoursesForAdmin,
   deleteById,
   getBestSellerCategoies,
+  addViewsCourse,
 };
