@@ -54,7 +54,10 @@ module.exports = {
       )
       .count('sc.id as subscriber')
       .from('course')
-      .where('course.category_id', category_id)
+      .where({
+        'course.category_id': category_id,
+        'course.enable_status': 1
+      })
       .leftJoin('image', 'image.id', 'course.img_id')
       .leftJoin('student_course as sc', 'sc.course_id', 'course.id')
       .leftJoin('account_detail as ad', 'ad.account_id', 'course.lecturer_id')
@@ -146,9 +149,10 @@ module.exports = {
         where 1 = 1
           and c.category_id = ${catId}
           and sc.register_date BETWEEN NOW() - INTERVAL 1 month AND NOW()
-          group by sc.course_id
-          order by num_register_month desc, sc.register_date desc
-          limit ${amount}
+          and c.enable_status = 1
+        group by sc.course_id
+        order by num_register_month desc, sc.register_date desc
+        limit ${amount}
       ) as r
       left join student_course as sc
         on sc.course_id = r.id
@@ -239,14 +243,17 @@ module.exports = {
       .count('sc.id as num_register')
       .count('sc.vote as num_feedback')
       .from('course')
-      .where('course.id', course_id)
+      .where({
+        'course.id': course_id,
+        'course.enable_status': true
+      })
       .leftJoin('account_detail', 'account_detail.account_id', 'course.lecturer_id')
       .leftJoin('image', 'image.id', 'course.img_id')
       .leftJoin('student_course as sc', 'sc.course_id', 'course.id')
       .leftJoin('category', 'category.id', 'course.category_id')
       ;
 
-    if (courses.length > 0) {
+    if (courses.length > 0 && courses[0].id !== null) {
       let course = courses[0];
 
       //get all chapter
@@ -334,7 +341,10 @@ module.exports = {
         count(sc.id) as num_register_month, 
         sc.register_date as lastest_register
       from student_course as sc
-      where sc.register_date BETWEEN NOW() - INTERVAL 7 day AND NOW()
+      inner join course on course.id = sc.course_id
+      where 1=1
+			      and course.enable_status = true
+            and sc.register_date BETWEEN NOW() - INTERVAL 7 day AND NOW()
       group by sc.course_id
       order by num_register_month desc, sc.register_date desc
       limit 5
