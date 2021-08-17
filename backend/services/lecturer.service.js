@@ -51,6 +51,16 @@ async function removeItemById(lecturer_id) {
   return retData;
 }
 
+async function blockLecturer(lecturer_id){
+  let retData = {};
+  const result = await lecturerModel.blockById(lecturer_id);
+  retData.code = Code.Success;
+  retData.message = Message.Success;
+  retData.data = result;
+
+  return retData;
+}
+
 async function addLecturerItem(data) {
   let resData = {};
   const isUsernameExisted = await lecturerModel.getLecturerByUsername(data.username);
@@ -92,5 +102,6 @@ module.exports = {
   getLecturerById,
   getLecturers,
   removeItemById,
-  addLecturerItem
+  addLecturerItem,
+  blockLecturer
 };

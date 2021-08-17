@@ -157,7 +157,7 @@ module.exports = {
   async getStudents(){
     const result = await db.select(
       'account.id', 'account.username', 'account.email', 
-      'account.create_date', 'account_detail.fullname'
+      'account.create_date', 'account_detail.fullname', 'account.enable'
     ).from('account').leftJoin('account_detail', 'account.id',
     'account_detail.account_id' ).where('account.account_role', 3);
 
@@ -176,6 +176,13 @@ module.exports = {
       resultOnAccount,
       resultOnAccDetail
     ]
+    return result;
+  },
+
+  async blockItemById(id){
+    const result = await db('account').where('id', id)
+    .update({enable: false});
+
     return result;
   },
 

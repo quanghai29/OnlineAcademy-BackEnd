@@ -51,6 +51,16 @@ async function removeItemById(student_id) {
   
   return retData;
 }
+
+async function blockItemById(student_id){
+  let retData = {};
+  const result = await studentModel.blockItemById(student_id);
+  retData.code = Code.Success;
+  retData.message = Message.Success;
+  retData.data = result;
+  
+  return retData;
+}
 //#endregion
 
 //#region QuangHai
@@ -149,4 +159,5 @@ module.exports = {
   getCourseRegister,
   updateStudentVideo,
   getStudentVideo,
+  blockItemById
 }

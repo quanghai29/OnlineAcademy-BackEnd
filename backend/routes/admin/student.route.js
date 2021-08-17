@@ -6,9 +6,9 @@ router.get('/', async(req, res)=>{
   res.status(resData.code).json(resData.data);
 })
 
-router.delete('/', async (req, res)=>{
-  const student_id = req.headers.student_id;
-  const resData = await studentService.removeItemById(student_id);
+router.patch('/:id', async (req, res)=>{
+  const id = req.params.id || 0;
+  const resData = await studentService.blockItemById(id);
 
   res.status(resData.code).json(resData.data);
 })

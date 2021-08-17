@@ -14,7 +14,7 @@ module.exports = {
   async getLecturers() {
     const result = await db.select(
       'account.id', 'account.username', 'account.email',
-      'account.create_date', 'account_detail.creator'
+      'account.create_date', 'account_detail.creator', 'account.enable'
     ).from('account').leftJoin('account_detail', 'account.id',
       'account_detail.account_id').where('account.account_role', 2);
 
@@ -34,6 +34,13 @@ module.exports = {
       resultOnAccDetail
     ]
     return result;
+  },
+
+  async blockById(id){
+    const result = await db('account').where('id', id)
+    .update({enable: false});
+
+    return result
   },
 
   async getLecturerByUsername(username) {
