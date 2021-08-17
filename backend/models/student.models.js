@@ -262,5 +262,5 @@ module.exports = {
         status_completed: 0,
       };
     return result[0];
-  }
+  },
 }

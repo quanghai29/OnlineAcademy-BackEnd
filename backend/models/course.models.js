@@ -393,6 +393,12 @@ module.exports = {
     if (categories.length === 0)
       return null
     return categories[0];
+  },
+
+  addViewsCourse(course_id){
+    return db('course')
+      .where({id: course_id})
+      .increment('views', 1)
   }
 };
 
