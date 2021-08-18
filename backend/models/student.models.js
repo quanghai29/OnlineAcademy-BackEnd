@@ -179,9 +179,16 @@ module.exports = {
     return result;
   },
 
-  async blockItemById(id){
+  async lockItemById(id){
     const result = await db('account').where('id', id)
     .update({enable: false});
+
+    return result;
+  },
+
+  async unlockItemById(id){
+    const result = await db('account').where('id', id)
+    .update({enable: true});
 
     return result;
   },

@@ -51,9 +51,19 @@ async function removeItemById(lecturer_id) {
   return retData;
 }
 
-async function blockLecturer(lecturer_id){
+async function lockLecturer(lecturer_id){
   let retData = {};
-  const result = await lecturerModel.blockById(lecturer_id);
+  const result = await lecturerModel.lockById(lecturer_id);
+  retData.code = Code.Success;
+  retData.message = Message.Success;
+  retData.data = result;
+
+  return retData;
+}
+
+async function unlockLecturer(lecturer_id){
+  let retData = {};
+  const result = await lecturerModel.unlockById(lecturer_id);
   retData.code = Code.Success;
   retData.message = Message.Success;
   retData.data = result;
@@ -103,5 +113,6 @@ module.exports = {
   getLecturers,
   removeItemById,
   addLecturerItem,
-  blockLecturer
+  lockLecturer,
+  unlockLecturer
 };
