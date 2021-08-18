@@ -7,10 +7,18 @@ router.get('/', async (req, res)=>{
   res.status(result.code).json(result.data);
 })
 
-router.delete('/', async(req, res)=>{
-  const course_id = req.headers['course_id'];
-  const result = await courseService.deleteById(course_id);
+router.patch('/lock/:id', async(req, res)=>{
+  const course_id = req.params.id || 0;
+  const result = await courseService.lockById(course_id);
 
   res.status(result.code).json(result.message);
 })
+
+router.patch('/unlock/:id', async(req, res)=>{
+  const course_id = req.params.id || 0;
+  const result = await courseService.unlockById(course_id);
+
+  res.status(result.code).json(result.message);
+})
+
 module.exports = router;

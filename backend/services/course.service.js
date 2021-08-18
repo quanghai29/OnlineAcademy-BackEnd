@@ -438,6 +438,26 @@ async function deleteById(course_id) {
     message: Message.Deleted_Success,
   });
 }
+
+async function lockById(course_id){
+  let retData = {};
+  const result = await courseModel.lockById(course_id);
+  retData.code = Code.Success;
+  retData.message = Message.Success;
+  retData.data = result;
+
+  return retData;
+}
+
+async function unlockById(course_id){
+  let retData = {};
+  const result = await courseModel.unlockById(course_id);
+  retData.code = Code.Success;
+  retData.message = Message.Success;
+  retData.data = result;
+
+  return retData;
+}
 //#endregion
 
 module.exports = {
@@ -460,4 +480,6 @@ module.exports = {
   deleteById,
   getBestSellerCategoies,
   addViewsCourse,
+  lockById,
+  unlockById
 };

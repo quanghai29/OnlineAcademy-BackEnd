@@ -6,9 +6,16 @@ router.get('/', async(req, res)=>{
   res.status(resData.code).json(resData.data);
 })
 
-router.delete('/', async (req, res)=>{
-  const student_id = req.headers.student_id;
-  const resData = await studentService.removeItemById(student_id);
+router.patch('/lock/:id', async (req, res)=>{
+  const id = req.params.id || 0;
+  const resData = await studentService.lockItemById(id);
+
+  res.status(resData.code).json(resData.data);
+})
+
+router.patch('/unlock/:id', async (req, res)=>{
+  const id = req.params.id || 0;
+  const resData = await studentService.unlockItemById(id);
 
   res.status(resData.code).json(resData.data);
 })

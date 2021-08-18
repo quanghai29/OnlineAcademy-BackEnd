@@ -2,6 +2,7 @@ const { Code, Message } = require('../helper/statusCode.helper');
 const lecturerModel = require('../models/lecturer.models');
 const accountModel = require('../models/account.model');
 const moment = require('moment');
+const bcrypt = require('bcryptjs');
 
 //#region TienDung
 
@@ -51,6 +52,26 @@ async function removeItemById(lecturer_id) {
   return retData;
 }
 
+async function lockLecturer(lecturer_id){
+  let retData = {};
+  const result = await lecturerModel.lockById(lecturer_id);
+  retData.code = Code.Success;
+  retData.message = Message.Success;
+  retData.data = result;
+
+  return retData;
+}
+
+async function unlockLecturer(lecturer_id){
+  let retData = {};
+  const result = await lecturerModel.unlockById(lecturer_id);
+  retData.code = Code.Success;
+  retData.message = Message.Success;
+  retData.data = result;
+
+  return retData;
+}
+
 async function addLecturerItem(data) {
   let resData = {};
   const isUsernameExisted = await lecturerModel.getLecturerByUsername(data.username);
@@ -60,7 +81,7 @@ async function addLecturerItem(data) {
   } else {
     const account= {
       username: data.username,
-      password: data.password,
+      password: bcrypt.hashSync(data.password, 10),
       confirm_email: 1,
       account_role: 2
     };
@@ -92,5 +113,7 @@ module.exports = {
   getLecturerById,
   getLecturers,
   removeItemById,
-  addLecturerItem
+  addLecturerItem,
+  lockLecturer,
+  unlockLecturer
 };

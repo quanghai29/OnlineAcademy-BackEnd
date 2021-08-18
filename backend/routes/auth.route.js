@@ -62,6 +62,14 @@ router.post('/', validate(loginSchema), async function (req, res) {
     })
   }
 
+  if(!account.enable){
+    return res.json({
+      authenticated: false,
+      shouldConfirmEmail: false,
+      isDisable: true
+    })
+  }
+
   const moreInfo = await accountService.getMoreInfoAccount(account.id);
 
   const accessToken = jwt.sign({

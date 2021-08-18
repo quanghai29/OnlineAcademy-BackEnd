@@ -51,6 +51,26 @@ async function removeItemById(student_id) {
   
   return retData;
 }
+
+async function lockItemById(student_id){
+  let retData = {};
+  const result = await studentModel.lockItemById(student_id);
+  retData.code = Code.Success;
+  retData.message = Message.Success;
+  retData.data = result;
+  
+  return retData;
+}
+
+async function unlockItemById(student_id){
+  let retData = {};
+  const result = await studentModel.unlockItemById(student_id);
+  retData.code = Code.Success;
+  retData.message = Message.Success;
+  retData.data = result;
+  
+  return retData;
+}
 //#endregion
 
 //#region QuangHai
@@ -150,4 +170,6 @@ module.exports = {
   getCourseRegister,
   updateStudentVideo,
   getStudentVideo,
+  lockItemById,
+  unlockItemById
 }

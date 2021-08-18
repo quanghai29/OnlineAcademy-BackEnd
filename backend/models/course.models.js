@@ -54,7 +54,10 @@ module.exports = {
       )
       .count('sc.id as subscriber')
       .from('course')
-      .where('course.category_id', category_id)
+      .where({
+        'course.category_id': category_id,
+        'course.enable_status': 1
+      })
       .leftJoin('image', 'image.id', 'course.img_id')
       .leftJoin('student_course as sc', 'sc.course_id', 'course.id')
       .leftJoin('account_detail as ad', 'ad.account_id', 'course.lecturer_id')
@@ -71,8 +74,9 @@ module.exports = {
     const sql = `
     SELECT *, MATCH (title, short_description, full_description) 
     AGAINST ('${text}') as score
-    FROM course WHERE MATCH (title, short_description, full_description) 
-    AGAINST ('${text}') > 0 ORDER BY score DESC;
+    FROM course WHERE MATCH (title, short_description, full_description) AGAINST ('${text}') > 0
+    AND enable_status = 1
+    ORDER BY score DESC;
     `;
     const courses = await db.raw(sql);
 
@@ -145,9 +149,10 @@ module.exports = {
         where 1 = 1
           and c.category_id = ${catId}
           and sc.register_date BETWEEN NOW() - INTERVAL 1 month AND NOW()
-          group by sc.course_id
-          order by num_register_month desc, sc.register_date desc
-          limit ${amount}
+          and c.enable_status = 1
+        group by sc.course_id
+        order by num_register_month desc, sc.register_date desc
+        limit ${amount}
       ) as r
       left join student_course as sc
         on sc.course_id = r.id
@@ -181,11 +186,12 @@ module.exports = {
        LEFT JOIN (
         SELECT course_id, avg(vote) AS rating, 
           COUNT(course_id) AS total_student
-        FROM student_course
+        FROM student_course 
         GROUP BY(course_id)
        ) AS temp_2 ON course.id = temp_2.course_id
        LEFT JOIN account_detail ON account_detail.account_id = lecturer_id
        LEFT JOIN image ON img_id = image.id
+       WHERE course.enable_status = 1
        LIMIT 4;`
     )
     return courses[0];
@@ -238,14 +244,17 @@ module.exports = {
       .count('sc.id as num_register')
       .count('sc.vote as num_feedback')
       .from('course')
-      .where('course.id', course_id)
+      .where({
+        'course.id': course_id,
+        'course.enable_status': true
+      })
       .leftJoin('account_detail', 'account_detail.account_id', 'course.lecturer_id')
       .leftJoin('image', 'image.id', 'course.img_id')
       .leftJoin('student_course as sc', 'sc.course_id', 'course.id')
       .leftJoin('category', 'category.id', 'course.category_id')
       ;
 
-    if (courses.length > 0) {
+    if (courses.length > 0 && courses[0].id !== null) {
       let course = courses[0];
 
       //get all chapter
@@ -333,7 +342,10 @@ module.exports = {
         count(sc.id) as num_register_month, 
         sc.register_date as lastest_register
       from student_course as sc
-      where sc.register_date BETWEEN NOW() - INTERVAL 7 day AND NOW()
+      inner join course on course.id = sc.course_id
+      where 1=1
+			      and course.enable_status = true
+            and sc.register_date BETWEEN NOW() - INTERVAL 7 day AND NOW()
       group by sc.course_id
       order by num_register_month desc, sc.register_date desc
       limit 5
@@ -355,8 +367,8 @@ module.exports = {
   async getCoursesForAdmin() {
     const courses = await db.select('course.id as course_id', 'course.category_id',
       'course.title', 'course.create_date', 'course.last_update', 'course.short_description',
-      'course.course_status', 'account_detail.fullname as creator', 'image.img_title',
-      'image.img_source')
+      'course.enable_status','course.course_status', 'account_detail.fullname as creator',
+       'image.img_title','image.img_source')
       .from('course').leftJoin('account_detail', 'course.lecturer_id', 'account_detail.account_id')
       .leftJoin('image', 'image.id', 'course.img_id');
 
@@ -366,6 +378,20 @@ module.exports = {
   async deleteById(id) {
     const result = await db(table_name)
       .where('id', id).del();
+
+    return result;
+  },
+
+  async lockById(id){
+    const result = await db('course').where('id', id)
+    .update({enable_status: false});
+
+    return result;
+  },
+
+  async unlockById(id){
+    const result = await db('course').where('id', id)
+    .update({enable_status: true});
 
     return result;
   },
