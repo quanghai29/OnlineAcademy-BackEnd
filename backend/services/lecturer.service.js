@@ -2,6 +2,7 @@ const { Code, Message } = require('../helper/statusCode.helper');
 const lecturerModel = require('../models/lecturer.models');
 const accountModel = require('../models/account.model');
 const moment = require('moment');
+const bcrypt = require('bcryptjs');
 
 //#region TienDung
 
@@ -80,7 +81,7 @@ async function addLecturerItem(data) {
   } else {
     const account= {
       username: data.username,
-      password: data.password,
+      password: bcrypt.hashSync(data.password, 10),
       confirm_email: 1,
       account_role: 2
     };
