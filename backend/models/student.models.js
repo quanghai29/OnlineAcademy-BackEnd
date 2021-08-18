@@ -157,7 +157,7 @@ module.exports = {
   async getStudents(){
     const result = await db.select(
       'account.id', 'account.username', 'account.email', 
-      'account.create_date', 'account_detail.fullname'
+      'account.create_date', 'account_detail.fullname', 'account.enable'
     ).from('account').leftJoin('account_detail', 'account.id',
     'account_detail.account_id' ).where('account.account_role', 3);
 
@@ -179,6 +179,13 @@ module.exports = {
     return result;
   },
 
+  async blockItemById(id){
+    const result = await db('account').where('id', id)
+    .update({enable: false});
+
+    return result;
+  },
+
   getCourseRegister(student_id){
     return db
       .select(
@@ -196,7 +203,8 @@ module.exports = {
         .as('r')
       )
       .innerJoin('student_course as sc1', 'sc1.course_id', 'r.course_id')
-      .leftJoin('course', 'course.id', 'r.course_id')
+      .innerJoin('course', 'course.id', 'r.course_id')
+      .where('course.enable_status', true)
       .leftJoin('account_detail as ad','ad.account_id', 'course.lecturer_id')
       .leftJoin('image', 'image.id', 'course.img_id')
       .groupBy('r.course_id')
