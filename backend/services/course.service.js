@@ -377,6 +377,7 @@ async function getCoursesForAdmin() {
   const courses = await courseModel.getCoursesForAdmin();
   courses.forEach((course) => {
     course.last_update = moment(course.last_update).format('DD/MM/YYYY');
+    course.create_date = moment(course.create_date).format('DD/MM/YYYY');
   });
   retData.data = courses;
 
@@ -438,6 +439,26 @@ async function deleteById(course_id) {
     message: Message.Deleted_Success,
   });
 }
+
+async function lockById(course_id){
+  let retData = {};
+  const result = await courseModel.lockById(course_id);
+  retData.code = Code.Success;
+  retData.message = Message.Success;
+  retData.data = result;
+
+  return retData;
+}
+
+async function unlockById(course_id){
+  let retData = {};
+  const result = await courseModel.unlockById(course_id);
+  retData.code = Code.Success;
+  retData.message = Message.Success;
+  retData.data = result;
+
+  return retData;
+}
 //#endregion
 
 module.exports = {
@@ -460,4 +481,6 @@ module.exports = {
   deleteById,
   getBestSellerCategoies,
   addViewsCourse,
+  lockById,
+  unlockById
 };

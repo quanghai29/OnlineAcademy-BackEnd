@@ -367,8 +367,8 @@ module.exports = {
   async getCoursesForAdmin() {
     const courses = await db.select('course.id as course_id', 'course.category_id',
       'course.title', 'course.create_date', 'course.last_update', 'course.short_description',
-      'course.course_status', 'account_detail.fullname as creator', 'image.img_title',
-      'image.img_source')
+      'course.enable_status','course.course_status', 'account_detail.fullname as creator',
+       'image.img_title','image.img_source')
       .from('course').leftJoin('account_detail', 'course.lecturer_id', 'account_detail.account_id')
       .leftJoin('image', 'image.id', 'course.img_id');
 
@@ -378,6 +378,20 @@ module.exports = {
   async deleteById(id) {
     const result = await db(table_name)
       .where('id', id).del();
+
+    return result;
+  },
+
+  async lockById(id){
+    const result = await db('course').where('id', id)
+    .update({enable_status: false});
+
+    return result;
+  },
+
+  async unlockById(id){
+    const result = await db('course').where('id', id)
+    .update({enable_status: true});
 
     return result;
   },

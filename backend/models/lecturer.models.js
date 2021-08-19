@@ -36,9 +36,16 @@ module.exports = {
     return result;
   },
 
-  async blockById(id){
+  async lockById(id){
     const result = await db('account').where('id', id)
     .update({enable: false});
+
+    return result
+  },
+
+  async unlockById(id){
+    const result = await db('account').where('id', id)
+    .update({enable: true});
 
     return result
   },
