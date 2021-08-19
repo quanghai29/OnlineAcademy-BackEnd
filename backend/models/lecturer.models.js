@@ -61,5 +61,12 @@ module.exports = {
   async addLecturer(data) {
     const account = await db('account').insert(data);
     return account.length > 0 ? account[0] : null;
+  },
+
+  async updateEmail(email, id){
+    const result = await db('account').where('id', id)
+    .update({email: email});
+
+    return result;
   }
 };
