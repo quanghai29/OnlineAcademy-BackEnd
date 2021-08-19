@@ -377,6 +377,7 @@ async function getCoursesForAdmin() {
   const courses = await courseModel.getCoursesForAdmin();
   courses.forEach((course) => {
     course.last_update = moment(course.last_update).format('DD/MM/YYYY');
+    course.create_date = moment(course.create_date).format('DD/MM/YYYY');
   });
   retData.data = courses;
 
