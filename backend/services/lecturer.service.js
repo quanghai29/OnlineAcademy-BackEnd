@@ -108,6 +108,15 @@ async function addLecturerItem(data) {
   return resData;
 }
 
+async function updateEmail(email, id){
+  let retData = {};
+  const result = await lecturerModel.updateEmail(email, id);
+  retData.code = Code.Success;
+  retData.message = Message.Success;
+  retData.data = result;
+
+  return retData;
+}
 
 module.exports = {
   getLecturerById,
@@ -115,5 +124,6 @@ module.exports = {
   removeItemById,
   addLecturerItem,
   lockLecturer,
-  unlockLecturer
+  unlockLecturer,
+  updateEmail
 };

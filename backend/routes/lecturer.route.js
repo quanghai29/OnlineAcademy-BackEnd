@@ -24,4 +24,13 @@ router.get('/:id', async (req, res) => {
 })
 //#endregion
 
+router.post('/update-email', async(req, res)=>{
+  const {email, id} = req.body;
+  console.log(req.body);
+  const resData = await lecturerService.updateEmail(email,id);
+
+  res.status(resData.code).json(resData.data);
+
+})
+
 module.exports = router;
